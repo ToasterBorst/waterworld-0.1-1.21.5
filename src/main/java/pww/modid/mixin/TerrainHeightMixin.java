@@ -32,7 +32,6 @@ public class TerrainHeightMixin {
             );
             
             cir.setReturnValue(capped);
-            System.out.println("[Waterworld] Capped terrain height at " + MAX_TERRAIN_HEIGHT);
         }
     }
 }

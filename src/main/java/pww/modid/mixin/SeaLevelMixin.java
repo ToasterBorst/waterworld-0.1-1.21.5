@@ -13,6 +13,5 @@ public class SeaLevelMixin {
     private void modifySeaLevel(CallbackInfoReturnable<Integer> cir) {
         // Set sea level to 126
         cir.setReturnValue(126);
-        System.out.println("[Waterworld] Modified sea level to 126");
     }
 }

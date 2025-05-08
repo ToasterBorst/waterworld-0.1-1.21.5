@@ -13,6 +13,7 @@ object Waterworld : ModInitializer {
     override fun onInitialize() {
         logger.info("Project Waterworld initializing!")
         logger.info("Setting sea level to $SEA_LEVEL, terrain capped at $MAX_TERRAIN_HEIGHT")
+        logger.info("Biome modifications: all terrain below sea level will use ocean biomes")
         
         try {
             // Register a server starting event to verify our changes
@@ -23,6 +24,7 @@ object Waterworld : ModInitializer {
                     val level = server.overworld().seaLevel
                     logger.info("Current sea level: $level (should be $SEA_LEVEL)")
                     logger.info("Terrain height capped at $MAX_TERRAIN_HEIGHT (15 blocks below sea level)")
+                    logger.info("Biome modifications active - overriding non-ocean biomes below sea level")
                 } catch (e: Exception) {
                     logger.error("Failed to check sea level: ${e.message}")
                 }

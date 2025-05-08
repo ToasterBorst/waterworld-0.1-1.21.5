@@ -5,7 +5,8 @@
 	"mixins": [
 	  "ExampleMixin",
 	  "SeaLevelMixin",
-	  "TerrainHeightMixin"
+	  "TerrainHeightMixin",
+	  "BiomeManagerMixin"
 	],
 	"client": [],
 	"injectors": {
