@@ -6,10 +6,8 @@ import org.slf4j.LoggerFactory
 object Waterworld : ModInitializer {
     private val logger = LoggerFactory.getLogger("waterworld")
     
-    // Make the water level constant public and const
+    // Define the constants here
     const val WATER_LEVEL = 126
-    
-    // Define the MOD_ID
     const val MOD_ID = "waterworld"
 
     override fun onInitialize() {
