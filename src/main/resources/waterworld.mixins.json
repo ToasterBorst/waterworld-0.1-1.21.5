@@ -3,7 +3,8 @@
 	"package": "pww.modid.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
-		"ExampleMixin"
+		"ExampleMixin",
+		"TerrainMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
