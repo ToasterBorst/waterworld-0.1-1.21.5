@@ -6,8 +6,10 @@
           "type": "minecraft:noise",
           "settings": "waterworld:overworld",
           "biome_source": {
-            "type": "minecraft:multi_noise",
-            "preset": "minecraft:overworld"
+            "type": "minecraft:vanilla_layered",
+            "legacy_biome_init_layer": false,
+            "large_biomes": false,
+            "seed": 0
           }
         }
       },
