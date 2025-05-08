@@ -6,6 +6,9 @@ import net.minecraft.network.chat.Component;
 
 public class WaterWorldGameRule {
     
+    // Duplicate the constant from Kotlin (for now)
+    private static final int WATER_LEVEL = 126;
+    
     public static void register() {
         // Register command to display info about waterworld
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
@@ -14,7 +17,7 @@ public class WaterWorldGameRule {
                     .executes(context -> {
                         // Just show info for now
                         context.getSource().sendSuccess(
-                            () -> Component.literal("Project Waterworld is active! Water level is set to " + WaterWorldConstants.WATER_LEVEL), 
+                            () -> Component.literal("Project Waterworld is active! Water level is set to " + WATER_LEVEL), 
                             false
                         );
                         return 1;

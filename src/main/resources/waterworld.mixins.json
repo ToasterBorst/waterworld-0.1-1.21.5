@@ -3,9 +3,12 @@
 	"package": "pww.modid.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
-		"ExampleMixin"
+	  "ExampleMixin",
+	  "OceanLevelMixin",
+	  "NoLandMixin"
 	],
+	"client": [],
 	"injectors": {
-		"defaultRequire": 1
+	  "defaultRequire": 1
 	}
-}
+  }
