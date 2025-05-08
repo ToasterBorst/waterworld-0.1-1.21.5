@@ -3,9 +3,7 @@
 	"package": "pww.modid.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
-	  "ExampleMixin",
-	  "NoiseGeneratorSettingsMixin",
-	  "NoiseChunkMixin"
+	  "ExampleMixin"
 	],
 	"client": [],
 	"injectors": {
