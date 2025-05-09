@@ -6,8 +6,7 @@
 	  "ExampleMixin",
 	  "SeaLevelMixin",
 	  "TerrainHeightMixin",
-	  "BiomeManagerMixin",
-	  "ChunkGeneratorMixin"
+	  "BiomeManagerMixin"
 	],
 	"client": [],
 	"injectors": {

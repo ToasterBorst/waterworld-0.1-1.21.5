@@ -11,9 +11,9 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * This mixin intercepts biome selection and ensures that only ocean biomes
@@ -54,9 +54,9 @@ public class BiomeManagerMixin {
         Biomes.BEACH
     );
     
-    // Cache to avoid repeatedly checking the same biomes
-    private static final Map<ResourceKey<Biome>, Boolean> OCEAN_BIOME_CACHE = new HashMap<>();
-    private static final Map<ResourceKey<Biome>, Boolean> ALLOWED_UNDERGROUND_CACHE = new HashMap<>();
+    // Use ConcurrentHashMap instead of HashMap for thread safety
+    private static final Map<ResourceKey<Biome>, Boolean> OCEAN_BIOME_CACHE = new ConcurrentHashMap<>();
+    private static final Map<ResourceKey<Biome>, Boolean> ALLOWED_UNDERGROUND_CACHE = new ConcurrentHashMap<>();
     
     @Inject(method = "getBiome", at = @At("RETURN"), cancellable = true)
     private void modifyBiome(BlockPos pos, CallbackInfoReturnable<Holder<Biome>> cir) {
@@ -74,19 +74,24 @@ public class BiomeManagerMixin {
                 ResourceKey<Biome> biomeKey = originalBiome.unwrapKey().orElse(null);
                 
                 if (biomeKey != null) {
-                    // Check if this is an ocean biome
-                    boolean isOcean = OCEAN_BIOME_CACHE.computeIfAbsent(biomeKey, 
-                            key -> OCEAN_BIOMES.contains(key));
+                    // Check if this is an ocean biome - use thread-safe get and put instead of computeIfAbsent
+                    Boolean isOcean = OCEAN_BIOME_CACHE.get(biomeKey);
+                    if (isOcean == null) {
+                        isOcean = OCEAN_BIOMES.contains(biomeKey);
+                        OCEAN_BIOME_CACHE.put(biomeKey, isOcean);
+                    }
                     
-                    // Check if this is an allowed underground biome
-                    boolean isAllowed = ALLOWED_UNDERGROUND_CACHE.computeIfAbsent(biomeKey,
-                            key -> ALLOWED_UNDERGROUND_BIOMES.contains(key));
+                    // Check if this is an allowed underground biome - use thread-safe get and put
+                    Boolean isAllowed = ALLOWED_UNDERGROUND_CACHE.get(biomeKey);
+                    if (isAllowed == null) {
+                        isAllowed = ALLOWED_UNDERGROUND_BIOMES.contains(biomeKey);
+                        ALLOWED_UNDERGROUND_CACHE.put(biomeKey, isAllowed);
+                    }
                     
                     // Replace non-ocean biomes that aren't allowed underground
                     if (!isOcean && !isAllowed) {
-                        // We currently don't have a way to replace the biome due to the registries
-                        // For now, we'll focus on getting a stable version running without crashes
-                        // The actual biome replacement will be implemented in a future update
+                        // For now, we won't actually replace the biome yet until we have a better method
+                        // This is just a placeholder for future implementation
                     }
                 }
             }

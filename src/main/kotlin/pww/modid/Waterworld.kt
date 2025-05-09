@@ -3,13 +3,24 @@ package pww.modid
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
 import pww.modid.world.WaterworldBiomeModifications
-import pww.modid.world.WaterworldTerrainModifier
+import pww.modid.world.WaterworldConstants
 import org.slf4j.LoggerFactory
 
+/**
+ * Project Waterworld - A Minecraft mod that transforms the world into a deep ocean environment.
+ * 
+ * Key features:
+ * - Raises sea level to 126 (from vanilla default of 63)
+ * - Caps terrain generation at Y=111 (15 blocks below sea level)
+ * - Ensures only ocean biomes generate below sea level (with exceptions for underground biomes)
+ * - Preserves normal biome distribution above sea level
+ * 
+ * This is the main mod class that handles initialization and core functionality.
+ */
 object Waterworld : ModInitializer {
     private val logger = LoggerFactory.getLogger("waterworld")
-    private const val SEA_LEVEL = 126
-    private val MAX_TERRAIN_HEIGHT = WaterworldTerrainModifier.MAX_TERRAIN_HEIGHT
+    private val SEA_LEVEL = WaterworldConstants.SEA_LEVEL
+    private val MAX_TERRAIN_HEIGHT = WaterworldConstants.MAX_TERRAIN_HEIGHT
 
     override fun onInitialize() {
         logger.info("Project Waterworld initializing!")
