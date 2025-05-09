@@ -38,6 +38,11 @@
 	  "fabric-api": "*",
 	  "fabric-language-kotlin": "*"
 	},
+	"data": {
+	  "minecraft:worldgen/noise_settings": {
+		"waterworld:waterworld": "data/waterworld/worldgen/noise_settings/waterworld.json"
+	  }
+	},
 	"custom": {
 	  "modmenu": {
 		"links": {
@@ -48,4 +53,4 @@
 		]
 	  }
 	}
-}
+  }
