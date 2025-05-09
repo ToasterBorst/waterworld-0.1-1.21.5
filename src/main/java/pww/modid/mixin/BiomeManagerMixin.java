@@ -23,8 +23,10 @@ public class BiomeManagerMixin {
         if (pos.getY() <= SEA_LEVEL && pos.getY() > 50) { // Only check in the upper range where we care most
             ResourceKey<Biome> biomeKey = cir.getReturnValue().unwrapKey().orElse(null);
             if (biomeKey != null && !isOceanBiome(biomeKey) && !isAllowedUndergroundBiome(biomeKey)) {
-                // For now, let's just log that we detected a non-ocean biome below sea level
-                // But limit the number of messages to avoid spam
+                // For now, we just log that we detected a non-ocean biome below sea level
+                // Implementation of actual biome replacement is challenging without direct registry access
+                // In a future version, we'll need to create a custom biome source that handles this mapping
+                
                 if (debugCount < DEBUG_LIMIT) {
                     System.out.println("[Waterworld] Detected non-ocean biome at y=" + pos.getY() + ": " + biomeKey);
                     debugCount++;
@@ -33,9 +35,6 @@ public class BiomeManagerMixin {
                         System.out.println("[Waterworld] Debug limit reached, suppressing further messages");
                     }
                 }
-                
-                // TODO: Replace with ocean biome based on position
-                // For now, just leave it as is
             }
         }
     }
