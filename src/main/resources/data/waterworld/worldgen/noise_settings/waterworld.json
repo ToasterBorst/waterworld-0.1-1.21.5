@@ -36,7 +36,12 @@
       "xz_scale": 0.25,
       "y_scale": 0
     },
-    "continents": 0,
+    "continents": {
+      "type": "minecraft:noise",
+      "noise": "minecraft:continentalness",
+      "xz_scale": 0.25,
+      "y_scale": 0
+    },
     "erosion": {
       "type": "minecraft:noise",
       "noise": "minecraft:erosion",
