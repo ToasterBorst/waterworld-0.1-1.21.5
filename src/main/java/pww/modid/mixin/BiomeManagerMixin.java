@@ -21,6 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Mixin(BiomeManager.class)
 public class BiomeManagerMixin {
+    // Hardcoded value to prevent path issues
     private static final int SEA_LEVEL = 126;
     private static final ThreadLocal<Boolean> IN_PROCESS = new ThreadLocal<>();
     

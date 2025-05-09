@@ -19,8 +19,8 @@ import org.slf4j.LoggerFactory
  */
 object Waterworld : ModInitializer {
     private val logger = LoggerFactory.getLogger("waterworld")
-    private val SEA_LEVEL = WaterworldConstants.SEA_LEVEL
-    private val MAX_TERRAIN_HEIGHT = WaterworldConstants.MAX_TERRAIN_HEIGHT
+    private const val SEA_LEVEL = 126
+    private const val MAX_TERRAIN_HEIGHT = 111
 
     override fun onInitialize() {
         logger.info("Project Waterworld initializing!")
@@ -36,22 +36,29 @@ object Waterworld : ModInitializer {
     
     private fun registerServerEvents() {
         try {
-            // Register a server starting event to verify our changes
-            ServerLifecycleEvents.SERVER_STARTING.register { server ->
+            // Use ServerStarted event instead of ServerStarting
+            // The ServerStarted event fires after the world is fully loaded
+            ServerLifecycleEvents.SERVER_STARTED.register { server ->
                 logger.info("Waterworld checking world generation settings...")
                 try {
-                    // Log current sea level to verify our mixin is working
-                    val level = server.overworld().seaLevel
-                    logger.info("Current sea level: $level (expected: $SEA_LEVEL)")
-                    
-                    if (level != SEA_LEVEL) {
-                        logger.warn("Sea level mixin may not be working correctly!")
+                    // Check if the overworld is available
+                    val overworld = server.overworld()
+                    if (overworld != null) {
+                        // Log current sea level to verify our mixin is working
+                        val level = overworld.seaLevel
+                        logger.info("Current sea level: $level (expected: $SEA_LEVEL)")
+                        
+                        if (level != SEA_LEVEL) {
+                            logger.warn("Sea level mixin may not be working correctly!")
+                        } else {
+                            logger.info("Sea level mixin is working correctly")
+                        }
+                        
+                        logger.info("Terrain height capped at $MAX_TERRAIN_HEIGHT (15 blocks below sea level)")
+                        logger.info("Biome modifications active - overriding non-ocean biomes below sea level")
                     } else {
-                        logger.info("Sea level mixin is working correctly")
+                        logger.warn("Overworld not available - can't check sea level")
                     }
-                    
-                    logger.info("Terrain height capped at $MAX_TERRAIN_HEIGHT (15 blocks below sea level)")
-                    logger.info("Biome modifications active - overriding non-ocean biomes below sea level")
                 } catch (e: Exception) {
                     logger.error("Failed to check sea level: ${e.message}")
                     e.printStackTrace()

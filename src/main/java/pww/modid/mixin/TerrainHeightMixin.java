@@ -2,7 +2,6 @@ package pww.modid.mixin;
 
 import net.minecraft.world.level.levelgen.DensityFunction;
 import net.minecraft.world.level.levelgen.DensityFunctions;
-import net.minecraft.world.level.levelgen.NoiseGeneratorSettings;
 import net.minecraft.world.level.levelgen.NoiseRouter;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -11,6 +10,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(NoiseRouter.class)
 public class TerrainHeightMixin {
+    // Hardcoded values to prevent path issues
     private static final int MAX_TERRAIN_HEIGHT = 111; // 15 blocks below sea level (126)
     
     // Target the method that creates the terrain noise
