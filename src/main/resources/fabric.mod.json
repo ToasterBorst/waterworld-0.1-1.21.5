@@ -21,12 +21,6 @@
 		  "adapter": "kotlin"
 		}
 	  ],
-	  "client": [
-		{
-		  "value": "pww.modid.WaterworldClient",
-		  "adapter": "kotlin"
-		}
-	  ],
 	  "fabric-datagen": [
 		{
 		  "value": "pww.modid.WaterworldDataGenerator",
@@ -35,11 +29,7 @@
 	  ]
 	},
 	"mixins": [
-	  "waterworld.mixins.json",
-	  {
-		"config": "waterworld.client.mixins.json",
-		"environment": "client"
-	  }
+	  "waterworld.mixins.json"
 	],
 	"depends": {
 	  "fabricloader": ">=0.16.14",
@@ -58,4 +48,4 @@
 		]
 	  }
 	}
-  }
+}
