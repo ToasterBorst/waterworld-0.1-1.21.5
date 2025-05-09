@@ -3,10 +3,7 @@
 	"package": "pww.modid.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
-	  "ExampleMixin",
-	  "SeaLevelMixin",
-	  "TerrainHeightMixin",
-	  "BiomeManagerMixin"
+	  "ExampleMixin"
 	],
 	"client": [],
 	"injectors": {

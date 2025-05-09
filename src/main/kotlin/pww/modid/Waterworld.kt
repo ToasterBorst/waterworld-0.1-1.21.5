@@ -2,8 +2,6 @@ package pww.modid
 
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
-import pww.modid.registry.WaterworldRegistry
-import pww.modid.world.WaterworldBiomeModifications
 import pww.modid.world.WaterworldConstants
 import org.slf4j.LoggerFactory
 
@@ -18,13 +16,7 @@ object Waterworld : ModInitializer {
         logger.info("Setting sea level to ${WaterworldConstants.SEA_LEVEL}")
         logger.info("Terrain capped at ${WaterworldConstants.MAX_TERRAIN_HEIGHT}")
         
-        // Initialize registry entries
-        WaterworldRegistry.initialize()
-        
-        // Initialize biome modifications
-        WaterworldBiomeModifications.initialize()
-        
-        // Register server lifecycle events
+        // Register server lifecycle events to verify world generation
         registerServerEvents()
     }
     
