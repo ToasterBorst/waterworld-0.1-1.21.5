@@ -5,6 +5,8 @@ import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.Biomes;
 import net.minecraft.core.Holder;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -24,27 +26,65 @@ public class BiomeManagerMixin {
             if (pos.getY() <= SEA_LEVEL && pos.getY() > 50) { // Only check in the upper range where we care most
                 ResourceKey<Biome> biomeKey = cir.getReturnValue().unwrapKey().orElse(null);
                 if (biomeKey != null && !isOceanBiome(biomeKey) && !isAllowedUndergroundBiome(biomeKey)) {
-                    // Log biome information
+                    // Log biome information (with limit)
                     if (debugCount < DEBUG_LIMIT) {
-                        System.out.println("[Waterworld] Detected non-ocean biome at y=" + pos.getY() + ": " + biomeKey);
-                        
-                        // Log information about the BiomeManager instance
-                        BiomeManager manager = (BiomeManager)(Object)this;
-                        System.out.println("[Waterworld] BiomeManager class: " + manager.getClass().getName());
-                        System.out.println("[Waterworld] BiomeManager methods:");
-                        for (java.lang.reflect.Method method : manager.getClass().getDeclaredMethods()) {
-                            System.out.println("  - " + method.getName() + ": " + method.getReturnType().getName());
-                        }
-                        
-                        // Log information about the biome holder
-                        Holder<Biome> biomeHolder = cir.getReturnValue();
-                        System.out.println("[Waterworld] Biome holder class: " + biomeHolder.getClass().getName());
-                        
+                        System.out.println("[Waterworld] Replacing non-ocean biome at y=" + pos.getY() + ": " + biomeKey);
                         debugCount++;
                         
                         if (debugCount == DEBUG_LIMIT) {
                             System.out.println("[Waterworld] Debug limit reached, suppressing further messages");
                         }
+                    }
+                    
+                    // Get the BiomeManager instance
+                    BiomeManager manager = (BiomeManager)(Object)this;
+                    
+                    // Determine which ocean biome to use based on temperature, etc.
+                    ResourceKey<Biome> oceanBiome = determineOceanBiome(pos);
+                    
+                    // Try to get the appropriate ocean biome holder
+                    // This is a bit tricky without direct registry access
+                    // First, we'll try to find any existing ocean biome in the world
+                    try {
+                        // Try looking for ocean biomes at this X/Z but at different heights
+                        for (int y = SEA_LEVEL; y >= 50; y--) {
+                            BlockPos oceanPos = new BlockPos(pos.getX(), y, pos.getZ());
+                            Holder<Biome> testBiome = manager.getBiome(oceanPos);
+                            ResourceKey<Biome> testKey = testBiome.unwrapKey().orElse(null);
+                            
+                            if (testKey != null && isOceanBiome(testKey)) {
+                                // Found an ocean biome! Use this one.
+                                cir.setReturnValue(testBiome);
+                                return;
+                            }
+                        }
+                        
+                        // If we couldn't find an ocean biome, try to use a default one
+                        // This is a fallback mechanism - not ideal but better than nothing
+                        if (isTemperatureCold(pos)) {
+                            // In colder areas, prefer cold ocean
+                            for (int y = SEA_LEVEL; y >= 50; y--) {
+                                // Try several different X/Z positions
+                                for (int xOffset = -100; xOffset <= 100; xOffset += 50) {
+                                    for (int zOffset = -100; zOffset <= 100; zOffset += 50) {
+                                        BlockPos testPos = new BlockPos(pos.getX() + xOffset, y, pos.getZ() + zOffset);
+                                        Holder<Biome> testBiome = manager.getBiome(testPos);
+                                        ResourceKey<Biome> testKey = testBiome.unwrapKey().orElse(null);
+                                        
+                                        if (testKey != null && isOceanBiome(testKey)) {
+                                            // Found an ocean biome! Use this one.
+                                            cir.setReturnValue(testBiome);
+                                            return;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // If all else fails, we'll stick with the original biome
+                        // Not ideal, but better than crashing
+                    } catch (Exception e) {
+                        System.out.println("[Waterworld] Error getting ocean biome: " + e.getMessage());
                     }
                 }
             }
@@ -52,6 +92,30 @@ public class BiomeManagerMixin {
             System.out.println("[Waterworld] Error in BiomeManagerMixin: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+    
+    // Helper method to determine appropriate ocean biome based on position
+    private ResourceKey<Biome> determineOceanBiome(BlockPos pos) {
+        // Simple temperature check based on X/Z position
+        if (isTemperatureCold(pos)) {
+            return Biomes.COLD_OCEAN;
+        } else if (isTemperatureWarm(pos)) {
+            return Biomes.WARM_OCEAN;
+        } else {
+            return Biomes.OCEAN;
+        }
+    }
+    
+    // Simple temperature check based on coordinates
+    private boolean isTemperatureCold(BlockPos pos) {
+        // Higher absolute Z values tend to be colder in Minecraft
+        return Math.abs(pos.getZ()) > 1000;
+    }
+    
+    // Simple temperature check based on coordinates
+    private boolean isTemperatureWarm(BlockPos pos) {
+        // Lower absolute Z values tend to be warmer in Minecraft
+        return Math.abs(pos.getZ()) < 500;
     }
     
     private static boolean isOceanBiome(ResourceKey<Biome> biomeKey) {
