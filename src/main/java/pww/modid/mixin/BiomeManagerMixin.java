@@ -19,23 +19,38 @@ public class BiomeManagerMixin {
     
     @Inject(method = "getBiome(Lnet/minecraft/core/BlockPos;)Lnet/minecraft/core/Holder;", at = @At("RETURN"), cancellable = true)
     private void modifyBiome(BlockPos pos, CallbackInfoReturnable<Holder<Biome>> cir) {
-        // If we're below sea level, check if it's not already an ocean biome
-        if (pos.getY() <= SEA_LEVEL && pos.getY() > 50) { // Only check in the upper range where we care most
-            ResourceKey<Biome> biomeKey = cir.getReturnValue().unwrapKey().orElse(null);
-            if (biomeKey != null && !isOceanBiome(biomeKey) && !isAllowedUndergroundBiome(biomeKey)) {
-                // For now, we just log that we detected a non-ocean biome below sea level
-                // Implementation of actual biome replacement is challenging without direct registry access
-                // In a future version, we'll need to create a custom biome source that handles this mapping
-                
-                if (debugCount < DEBUG_LIMIT) {
-                    System.out.println("[Waterworld] Detected non-ocean biome at y=" + pos.getY() + ": " + biomeKey);
-                    debugCount++;
-                    
-                    if (debugCount == DEBUG_LIMIT) {
-                        System.out.println("[Waterworld] Debug limit reached, suppressing further messages");
+        try {
+            // If we're below sea level, check if it's not already an ocean biome
+            if (pos.getY() <= SEA_LEVEL && pos.getY() > 50) { // Only check in the upper range where we care most
+                ResourceKey<Biome> biomeKey = cir.getReturnValue().unwrapKey().orElse(null);
+                if (biomeKey != null && !isOceanBiome(biomeKey) && !isAllowedUndergroundBiome(biomeKey)) {
+                    // Log biome information
+                    if (debugCount < DEBUG_LIMIT) {
+                        System.out.println("[Waterworld] Detected non-ocean biome at y=" + pos.getY() + ": " + biomeKey);
+                        
+                        // Log information about the BiomeManager instance
+                        BiomeManager manager = (BiomeManager)(Object)this;
+                        System.out.println("[Waterworld] BiomeManager class: " + manager.getClass().getName());
+                        System.out.println("[Waterworld] BiomeManager methods:");
+                        for (java.lang.reflect.Method method : manager.getClass().getDeclaredMethods()) {
+                            System.out.println("  - " + method.getName() + ": " + method.getReturnType().getName());
+                        }
+                        
+                        // Log information about the biome holder
+                        Holder<Biome> biomeHolder = cir.getReturnValue();
+                        System.out.println("[Waterworld] Biome holder class: " + biomeHolder.getClass().getName());
+                        
+                        debugCount++;
+                        
+                        if (debugCount == DEBUG_LIMIT) {
+                            System.out.println("[Waterworld] Debug limit reached, suppressing further messages");
+                        }
                     }
                 }
             }
+        } catch (Exception e) {
+            System.out.println("[Waterworld] Error in BiomeManagerMixin: " + e.getMessage());
+            e.printStackTrace();
         }
     }
     
