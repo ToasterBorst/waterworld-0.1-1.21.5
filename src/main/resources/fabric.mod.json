@@ -3,52 +3,59 @@
 	"id": "waterworld",
 	"version": "${version}",
 	"name": "Waterworld",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"description": "A mod that transforms the world into a deep ocean environment.",
 	"authors": [
-		"Me!"
+	  "Your Name"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+	  "homepage": "https://fabricmc.net/",
+	  "sources": "https://github.com/yourusername/waterworld"
 	},
 	"license": "CC0-1.0",
 	"icon": "assets/waterworld/icon.png",
 	"environment": "*",
 	"entrypoints": {
-		"main": [
-			{
-				"value": "pww.modid.Waterworld",
-				"adapter": "kotlin"
-			}
-		],
-		"client": [
-			{
-				"value": "pww.modid.WaterworldClient",
-				"adapter": "kotlin"
-			}
-		],
-		"fabric-datagen": [
-			{
-				"value": "pww.modid.WaterworldDataGenerator",
-				"adapter": "kotlin"
-			}
-		]
+	  "main": [
+		{
+		  "value": "pww.modid.Waterworld",
+		  "adapter": "kotlin"
+		}
+	  ],
+	  "client": [
+		{
+		  "value": "pww.modid.WaterworldClient",
+		  "adapter": "kotlin"
+		}
+	  ],
+	  "fabric-datagen": [
+		{
+		  "value": "pww.modid.WaterworldDataGenerator",
+		  "adapter": "kotlin"
+		}
+	  ]
 	},
 	"mixins": [
-		"waterworld.mixins.json",
-		{
-			"config": "waterworld.client.mixins.json",
-			"environment": "client"
-		}
+	  "waterworld.mixins.json",
+	  {
+		"config": "waterworld.client.mixins.json",
+		"environment": "client"
+	  }
 	],
 	"depends": {
-		"fabricloader": ">=0.16.14",
-		"minecraft": "~1.21.5",
-		"java": ">=21",
-		"fabric-api": "*",
-		"fabric-language-kotlin": "*"
+	  "fabricloader": ">=0.16.14",
+	  "minecraft": "~1.21.5",
+	  "java": ">=21",
+	  "fabric-api": "*",
+	  "fabric-language-kotlin": "*"
 	},
-	"suggests": {
-		"another-mod": "*"
+	"custom": {
+	  "modmenu": {
+		"links": {
+		  "modmenu.github": "https://github.com/yourusername/waterworld"
+		},
+		"badges": [
+		  "alpha"
+		]
+	  }
 	}
-}
+  }
