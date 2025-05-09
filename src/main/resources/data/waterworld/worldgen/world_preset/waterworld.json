@@ -7,7 +7,50 @@
         "settings": "waterworld:waterworld",
         "biome_source": {
           "type": "minecraft:multi_noise",
-          "preset": "minecraft:overworld"
+          "biomes": [
+            {
+              "biome": "minecraft:ocean",
+              "parameters": {
+                "temperature": 0.5,
+                "humidity": 0.5,
+                "continentalness": {
+                  "min": -1.2,
+                  "max": -0.8
+                },
+                "erosion": {
+                  "min": -1.0,
+                  "max": 1.0
+                },
+                "weirdness": {
+                  "min": -1.0,
+                  "max": 1.0
+                },
+                "depth": 0.0,
+                "offset": 0.0
+              }
+            },
+            {
+              "biome": "minecraft:deep_ocean",
+              "parameters": {
+                "temperature": 0.5,
+                "humidity": 0.5, 
+                "continentalness": {
+                  "min": -2.0,
+                  "max": -1.2
+                },
+                "erosion": {
+                  "min": -1.0,
+                  "max": 1.0
+                },
+                "weirdness": {
+                  "min": -1.0,
+                  "max": 1.0
+                },
+                "depth": 0.0,
+                "offset": 0.0
+              }
+            }
+          ]
         }
       }
     },
