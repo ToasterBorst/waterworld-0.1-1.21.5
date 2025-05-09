@@ -20,66 +20,32 @@
     "size_vertical": 2
   },
   "noise_router": {
-    "barrier": {
-      "type": "minecraft:noise",
-      "noise": "minecraft:aquifer_barrier",
-      "xz_scale": 1.0,
-      "y_scale": 0.5
-    },
-    "fluid_level_floodedness": {
-      "type": "minecraft:noise",
-      "noise": "minecraft:aquifer_fluid_level_floodedness",
-      "xz_scale": 1.0,
-      "y_scale": 0.67
-    },
-    "fluid_level_spread": {
-      "type": "minecraft:noise",
-      "noise": "minecraft:aquifer_fluid_level_spread",
-      "xz_scale": 1.0,
-      "y_scale": 0.7142857142857143
-    },
-    "lava": {
-      "type": "minecraft:noise",
-      "noise": "minecraft:aquifer_lava",
-      "xz_scale": 1.0,
-      "y_scale": 1.0
-    },
+    "barrier": 0.0,
+    "fluid_level_floodedness": 0.0,
+    "fluid_level_spread": 0.0,
+    "lava": 0.0,
     "temperature": {
-      "type": "minecraft:noise",
+      "type": "minecraft:shifted_noise",
       "noise": "minecraft:temperature",
       "xz_scale": 0.25,
-      "y_scale": 0.0
+      "y_scale": 0.0,
+      "shift_x": "minecraft:shift_x",
+      "shift_y": 0.0,
+      "shift_z": "minecraft:shift_z"
     },
     "vegetation": {
-      "type": "minecraft:noise",
+      "type": "minecraft:shifted_noise",
       "noise": "minecraft:vegetation",
       "xz_scale": 0.25,
-      "y_scale": 0.0
+      "y_scale": 0.0,
+      "shift_x": "minecraft:shift_x",
+      "shift_y": 0.0,
+      "shift_z": "minecraft:shift_z"
     },
-    "continents": {
-      "type": "minecraft:noise",
-      "noise": "minecraft:continentalness",
-      "xz_scale": 0.25,
-      "y_scale": 0.0
-    },
-    "erosion": {
-      "type": "minecraft:noise",
-      "noise": "minecraft:erosion",
-      "xz_scale": 0.25,
-      "y_scale": 0.0
-    },
-    "depth": {
-      "type": "minecraft:noise",
-      "noise": "minecraft:depth",
-      "xz_scale": 0.25,
-      "y_scale": 0.0
-    },
-    "ridges": {
-      "type": "minecraft:noise",
-      "noise": "minecraft:ridge",
-      "xz_scale": 0.25,
-      "y_scale": 0.0
-    },
+    "continents": 0.0,
+    "erosion": 0.0,
+    "depth": 0.0,
+    "ridges": 0.0,
     "initial_density_without_jaggedness": {
       "type": "minecraft:add",
       "argument1": 0.1171875,
@@ -175,33 +141,38 @@
     "vein_gap": 0.0
   },
   "surface_rule": {
-    "type": "minecraft:reference",
-    "id": "minecraft:overworld"
+    "type": "minecraft:sequence",
+    "sequence": [
+      {
+        "type": "minecraft:reference",
+        "id": "minecraft:overworld"
+      }
+    ]
   },
   "spawn_target": [
-  {
-    "temperature": {
-      "min": -1.0,
-      "max": 1.0
-    },
-    "humidity": {
-      "min": -1.0,
-      "max": 1.0
-    },
-    "continentalness": {
-      "min": -1.2,
-      "max": -0.8
-    },
-    "erosion": {
-      "min": -1.0,
-      "max": 1.0
-    },
-    "weirdness": {
-      "min": -1.0,
-      "max": 1.0
-    },
-    "depth": 0.0,
-    "offset": 0.0
-  }
-]
+    {
+      "temperature": {
+        "min": -1.0,
+        "max": 1.0
+      },
+      "humidity": {
+        "min": -1.0,
+        "max": 1.0
+      },
+      "continentalness": {
+        "min": -1.2,
+        "max": -0.8
+      },
+      "erosion": {
+        "min": -1.0,
+        "max": 1.0
+      },
+      "weirdness": {
+        "min": -1.0,
+        "max": 1.0
+      },
+      "depth": 0.0,
+      "offset": 0.0
+    }
+  ]
 }
