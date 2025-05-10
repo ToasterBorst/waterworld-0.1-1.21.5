@@ -1,5 +1,7 @@
 package waterworld.mixin;
 
+import net.minecraft.registry.Registry;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.biome.Biome;
@@ -11,6 +13,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import waterworld.ProjectWaterworld;
 import waterworld.world.OceanBiomeSource;
+import waterworld.util.BiomeHelper;
 
 @Mixin(BiomeAccess.class)
 public class OceanHeightBiomeMixin {
@@ -31,11 +34,22 @@ public class OceanHeightBiomeMixin {
                 return;
             }
             
-            // For now, just log that we found a non-ocean biome at this height
-            if (Math.random() < 0.0001) { // Log occasionally to avoid spam
-                ProjectWaterworld.LOGGER.debug("Found non-ocean biome at Y=" + pos.getY() + 
-                    ": " + originalBiome.getKey().map(k -> k.getValue().toString()).orElse("unknown"));
+            // Attempt to get an appropriate ocean biome based on the original biome's location
+            RegistryKey<Biome> oceanBiomeKey = BiomeHelper.getOceanBiomeReplacement(pos.getX(), pos.getY(), pos.getZ());
+            
+            // Log debug only occasionally to avoid excessive logging
+            if (Math.random() < 0.0001) {
+                ProjectWaterworld.LOGGER.debug("Replacing " + 
+                    originalBiome.getKey().map(k -> k.getValue().toString()).orElse("unknown") +
+                    " with " + oceanBiomeKey.getValue() + " at Y=" + pos.getY());
             }
+            
+            // Get the biome registry and the ocean biome
+            BiomeAccess biomeAccess = (BiomeAccess)(Object)this;
+            
+            // Get the ocean biome from the registry
+            // In the case we can't get the ocean biome, we'll keep the original
+            // But we need to implement a way to get the ocean biome entry
         }
     }
 }

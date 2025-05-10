@@ -5,7 +5,7 @@
     "mixins": [
         "SeaLevelMixin",
         "OceanHeightBiomeMixin",
-        "OceanMultiNoiseBiomeMixin"
+        "ChunkGeneratorMixin"
     ],
     "injectors": {
         "defaultRequire": 1
