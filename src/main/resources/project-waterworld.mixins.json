@@ -4,8 +4,7 @@
     "compatibilityLevel": "JAVA_21",
     "mixins": [
         "SeaLevelMixin",
-        "OceanHeightBiomeMixin",
-        "ChunkGeneratorMixin"
+        "OceanHeightBiomeMixin"
     ],
     "injectors": {
         "defaultRequire": 1

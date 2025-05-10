@@ -1,12 +1,10 @@
 package waterworld.mixin;
 
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.BiomeKeys;
 import net.minecraft.world.biome.source.BiomeAccess;
+import net.minecraft.world.biome.BiomeKeys;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -21,35 +19,39 @@ public class OceanHeightBiomeMixin {
     @Inject(method = "getBiome", at = @At("RETURN"), cancellable = true)
     private void modifyBiomeByHeight(BlockPos pos, CallbackInfoReturnable<RegistryEntry<Biome>> cir) {
         // Only apply to Y-levels between 0 and 126
-        if (OceanBiomeSource.shouldBeOcean(pos.getY())) {
+        if (pos.getY() > 0 && pos.getY() <= ProjectWaterworld.HIGH_SEA_LEVEL) {
             RegistryEntry<Biome> originalBiome = cir.getReturnValue();
             
             // Skip if it's already an ocean biome
-            if (OceanBiomeSource.isOceanBiome(originalBiome)) {
+            if (originalBiome.getKey().isPresent() && 
+                BiomeHelper.isOceanBiome(originalBiome.getKey().get().getValue().getPath())) {
                 return;
             }
             
             // Skip if it's an underground biome (we want to preserve those)
-            if (OceanBiomeSource.isUndergroundBiome(originalBiome)) {
-                return;
+            if (originalBiome.getKey().isPresent()) {
+                String biomePath = originalBiome.getKey().get().getValue().getPath();
+                if (biomePath.contains("cave") || 
+                    biomePath.contains("deep_dark") || 
+                    biomePath.contains("lush_caves")) {
+                    return;
+                }
             }
             
-            // Attempt to get an appropriate ocean biome based on the original biome's location
-            RegistryKey<Biome> oceanBiomeKey = BiomeHelper.getOceanBiomeReplacement(pos.getX(), pos.getY(), pos.getZ());
-            
-            // Log debug only occasionally to avoid excessive logging
-            if (Math.random() < 0.0001) {
-                ProjectWaterworld.LOGGER.debug("Replacing " + 
-                    originalBiome.getKey().map(k -> k.getValue().toString()).orElse("unknown") +
-                    " with " + oceanBiomeKey.getValue() + " at Y=" + pos.getY());
+            // Get the biome registry from the original biome
+            if (originalBiome.getKey().isPresent()) {
+                // Log occasionally for debugging
+                if (Math.random() < 0.0001) {
+                    ProjectWaterworld.LOGGER.debug("Replacing " + 
+                        originalBiome.getKey().get().getValue() +
+                        " with OCEAN at Y=" + pos.getY());
+                }
+                
+                // Replace with OCEAN biome - we'll need to find how to get the registry entry
+                // This is tricky without having access to the full registry
+                // For now, let's just log the attempt
+                ProjectWaterworld.LOGGER.debug("Attempted to replace biome at Y=" + pos.getY());
             }
-            
-            // Get the biome registry and the ocean biome
-            BiomeAccess biomeAccess = (BiomeAccess)(Object)this;
-            
-            // Get the ocean biome from the registry
-            // In the case we can't get the ocean biome, we'll keep the original
-            // But we need to implement a way to get the ocean biome entry
         }
     }
 }

@@ -1,4 +1,3 @@
-// Update src/main/java/waterworld/ProjectWaterworld.java
 package waterworld;
 
 import net.fabricmc.api.ModInitializer;
@@ -18,5 +17,9 @@ public class ProjectWaterworld implements ModInitializer {
     @Override
     public void onInitialize() {
         LOGGER.info("Initializing Project Waterworld with high sea level: " + HIGH_SEA_LEVEL);
+        
+        // For now, we'll rely on mixins only
+        // Our SeaLevelMixin will handle raising the sea level
+        // Our OceanHeightBiomeMixin will try to handle biome replacement
     }
 }
