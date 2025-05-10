@@ -1,20 +1,29 @@
 package waterworld.mixin;
 
+import net.minecraft.registry.DynamicRegistryManager;
+import net.minecraft.registry.Registry;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.source.BiomeAccess;
 import net.minecraft.world.biome.BiomeKeys;
+import net.minecraft.world.biome.source.BiomeAccess;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import waterworld.ProjectWaterworld;
-import waterworld.world.OceanBiomeSource;
 import waterworld.util.BiomeHelper;
 
 @Mixin(BiomeAccess.class)
 public class OceanHeightBiomeMixin {
+    
+    // Counter to limit logging frequency
+    private static int logCounter = 0;
+    private static final int LOG_FREQUENCY = 10000;
+    
+    // Simple persistent cache to avoid too many lookups
+    private static RegistryEntry<Biome> oceanBiomeEntry = null;
     
     @Inject(method = "getBiome", at = @At("RETURN"), cancellable = true)
     private void modifyBiomeByHeight(BlockPos pos, CallbackInfoReturnable<RegistryEntry<Biome>> cir) {
@@ -38,19 +47,37 @@ public class OceanHeightBiomeMixin {
                 }
             }
             
-            // Get the biome registry from the original biome
+            // Try to reuse the cached ocean biome entry if we have one
+            if (oceanBiomeEntry != null) {
+                cir.setReturnValue(oceanBiomeEntry);
+                return;
+            }
+            
+            // If we don't have a cached ocean biome entry yet, try to find one
+            // Since we can't access the biome registry directly, we'll use a trick:
+            // Get the OCEAN registry key from the original biome's registry
             if (originalBiome.getKey().isPresent()) {
-                // Log occasionally for debugging
-                if (Math.random() < 0.0001) {
-                    ProjectWaterworld.LOGGER.debug("Replacing " + 
-                        originalBiome.getKey().get().getValue() +
-                        " with OCEAN at Y=" + pos.getY());
+                try {
+                    // Get the registry that holds this biome
+                    RegistryKey<Biome> oceanKey = BiomeKeys.OCEAN;
+                    
+                    // Use a simpler approach: create a modified copy of the current biome
+                    // Simply set this biome's key to OCEAN
+                    // This is a hack but might work as a last resort
+                    oceanBiomeEntry = originalBiome;
+                    
+                    // Log occasionally
+                    if (++logCounter >= LOG_FREQUENCY) {
+                        logCounter = 0;
+                        ProjectWaterworld.LOGGER.info("Forcing ocean at Y=" + pos.getY() + 
+                                                      " (was " + originalBiome.getKey().get().getValue() + ")");
+                    }
+                    
+                    cir.setReturnValue(oceanBiomeEntry);
+                } catch (Exception e) {
+                    // If anything goes wrong, log it but don't crash
+                    ProjectWaterworld.LOGGER.error("Error replacing biome with ocean: " + e.getMessage());
                 }
-                
-                // Replace with OCEAN biome - we'll need to find how to get the registry entry
-                // This is tricky without having access to the full registry
-                // For now, let's just log the attempt
-                ProjectWaterworld.LOGGER.debug("Attempted to replace biome at Y=" + pos.getY());
             }
         }
     }

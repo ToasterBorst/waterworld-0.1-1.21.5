@@ -19,11 +19,11 @@ public class SeaLevelMixin {
         
         // Only log the first time
         if (!loggedSeaLevelChange) {
-            ProjectWaterworld.LOGGER.info("Changing sea level from " + originalSeaLevel + " to 126");
+            ProjectWaterworld.LOGGER.info("Changing sea level from " + originalSeaLevel + " to " + ProjectWaterworld.HIGH_SEA_LEVEL);
             loggedSeaLevelChange = true;
         }
         
-        // Always set the sea level to 126
-        cir.setReturnValue(126);
+        // Always set the sea level to the configured high sea level
+        cir.setReturnValue(ProjectWaterworld.HIGH_SEA_LEVEL);
     }
 }
