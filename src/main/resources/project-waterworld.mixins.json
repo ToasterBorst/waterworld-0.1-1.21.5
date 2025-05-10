@@ -4,7 +4,7 @@
     "compatibilityLevel": "JAVA_21",
     "mixins": [
         "SeaLevelMixin",
-        "OceanHeightBiomeMixin"
+        "BiomeSourceMixin"
     ],
     "injectors": {
         "defaultRequire": 1
