@@ -17,17 +17,10 @@
 	"entrypoints": {
 		"main": [
 			"waterworld.ProjectWaterworld"
-		],
-		"client": [
-			"waterworld.ProjectWaterworldClient"
 		]
 	},
 	"mixins": [
-		"project-waterworld.mixins.json",
-		{
-			"config": "project-waterworld.client.mixins.json",
-			"environment": "client"
-		}
+		"project-waterworld.mixins.json"
 	],
 	"depends": {
 		"fabricloader": ">=0.16.14",
