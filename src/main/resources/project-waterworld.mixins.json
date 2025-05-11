@@ -3,8 +3,7 @@
     "package": "waterworld.mixin",
     "compatibilityLevel": "JAVA_21",
     "mixins": [
-        "SeaLevelMixin",
-        "OceanTerrainMixin"
+        "SeaLevelMixin"
     ],
     "injectors": {
         "defaultRequire": 1
