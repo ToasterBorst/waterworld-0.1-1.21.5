@@ -1,44 +1,10 @@
 {
   "generator": {
-    "settings": "minecraft:overworld",
     "type": "minecraft:noise",
+    "settings": "minecraft:overworld",
     "biome_source": {
-      "preset": "minecraft:overworld",
-      "type": "minecraft:multi_noise"
-    }
-  },
-  "dimensions": {
-    "minecraft:overworld": {
-      "type": "minecraft:overworld",
-      "generator": {
-        "settings": "minecraft:overworld",
-        "type": "minecraft:noise",
-        "biome_source": {
-          "preset": "minecraft:overworld",
-          "type": "minecraft:multi_noise"
-        }
-      }
-    },
-    "minecraft:the_nether": {
-      "type": "minecraft:the_nether",
-      "generator": {
-        "settings": "minecraft:nether",
-        "type": "minecraft:noise",
-        "biome_source": {
-          "preset": "minecraft:nether",
-          "type": "minecraft:multi_noise"
-        }
-      }
-    },
-    "minecraft:the_end": {
-      "type": "minecraft:the_end",
-      "generator": {
-        "settings": "minecraft:end",
-        "type": "minecraft:noise",
-        "biome_source": {
-          "type": "minecraft:the_end"
-        }
-      }
+      "type": "minecraft:multi_noise",
+      "preset": "minecraft:overworld"
     }
   }
 }
