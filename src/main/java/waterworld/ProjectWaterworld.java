@@ -26,7 +26,7 @@ public class ProjectWaterworld implements ModInitializer {
             ResourceManagerHelper.registerBuiltinResourcePack(
                 packId, 
                 FabricLoader.getInstance().getModContainer(MOD_ID).orElseThrow(),
-                ResourcePackActivationType.ALWAYS_ENABLED
+                ResourcePackActivationType.DEFAULT_ENABLED
             );
             
             LOGGER.info("Successfully registered world generation datapack");
