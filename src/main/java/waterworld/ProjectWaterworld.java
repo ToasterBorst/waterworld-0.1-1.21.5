@@ -21,8 +21,7 @@ public class ProjectWaterworld implements ModInitializer {
         
         // Register our embedded datapack
         try {
-            // Create an Identifier using reflection if needed
-            Identifier packId = Identifier.of(MOD_ID, "world_generation");
+            Identifier packId = Identifier.of(MOD_ID, "waterworld");
             
             ResourceManagerHelper.registerBuiltinResourcePack(
                 packId, 
