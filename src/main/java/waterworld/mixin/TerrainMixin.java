@@ -7,13 +7,15 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.Heightmap;
+import net.minecraft.world.HeightLimitView;
 import net.minecraft.world.gen.chunk.NoiseChunkGenerator;
+import net.minecraft.world.gen.noise.NoiseConfig;
 
 @Mixin(NoiseChunkGenerator.class)
 public class TerrainMixin {
 
     @Inject(method = "getHeight", at = @At("RETURN"), cancellable = true)
-    private void limitTerrainHeight(int x, int z, Heightmap.Type heightmap, CallbackInfoReturnable<Integer> cir) {
+    private void limitTerrainHeight(int x, int z, Heightmap.Type heightmap, HeightLimitView world, NoiseConfig noise, CallbackInfoReturnable<Integer> cir) {
         int originalHeight = cir.getReturnValue();
         
         // Cap terrain height at y=70
