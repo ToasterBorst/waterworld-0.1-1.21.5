@@ -1,16 +1,12 @@
 package waterworld;
 
 import net.fabricmc.api.ModInitializer;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.BiomeKeys;
+import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
+import net.fabricmc.fabric.api.resource.ResourcePackActivationType;
+import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class ProjectWaterworld implements ModInitializer {
     public static final String MOD_ID = "project-waterworld";
@@ -19,27 +15,25 @@ public class ProjectWaterworld implements ModInitializer {
     // High sea level constant
     public static final int HIGH_SEA_LEVEL = 126;
     
-    // The Y level below which all non-underground biomes should be ocean
-    public static final int OCEAN_MAX_Y = HIGH_SEA_LEVEL;
-    
-    // Ocean biome keys for replacing non-ocean biomes
-    public static final RegistryKey<Biome>[] OCEAN_BIOMES = new RegistryKey[] {
-        BiomeKeys.OCEAN,
-        BiomeKeys.DEEP_OCEAN,
-        BiomeKeys.COLD_OCEAN,
-        BiomeKeys.DEEP_COLD_OCEAN,
-        BiomeKeys.FROZEN_OCEAN,
-        BiomeKeys.DEEP_FROZEN_OCEAN,
-        BiomeKeys.LUKEWARM_OCEAN,
-        BiomeKeys.DEEP_LUKEWARM_OCEAN,
-        BiomeKeys.WARM_OCEAN
-    };
-    
     @Override
     public void onInitialize() {
         LOGGER.info("Initializing Project Waterworld with high sea level: " + HIGH_SEA_LEVEL);
         
-        // Our SeaLevelMixin will handle raising the sea level
-        // Our OceanHeightBiomeMixin will handle biome replacement
+        // Register our embedded datapack
+        try {
+            // Create an Identifier using reflection if needed
+            Identifier packId = Identifier.of(MOD_ID, "world_generation");
+            
+            ResourceManagerHelper.registerBuiltinResourcePack(
+                packId, 
+                FabricLoader.getInstance().getModContainer(MOD_ID).orElseThrow(),
+                ResourcePackActivationType.ALWAYS_ENABLED
+            );
+            
+            LOGGER.info("Successfully registered world generation datapack");
+        } catch (Exception e) {
+            LOGGER.error("Failed to register datapack: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }
