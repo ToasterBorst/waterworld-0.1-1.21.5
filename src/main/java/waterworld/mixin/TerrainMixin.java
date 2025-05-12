@@ -15,27 +15,22 @@ import waterworld.ProjectWaterworld;
 @Mixin(NoiseChunkGenerator.class)
 public class TerrainMixin {
 
-    @Inject(method = "getHeight", at = @At("RETURN"), cancellable = true)
-    private void limitTerrainHeight(int x, int z, Heightmap.Type heightmap, HeightLimitView world, NoiseConfig noise, CallbackInfoReturnable<Integer> cir) {
-        int height = cir.getReturnValue();
-        
-        // For ocean floor, use vanilla height calculation
-        if (heightmap == Heightmap.Type.OCEAN_FLOOR || 
-            heightmap == Heightmap.Type.OCEAN_FLOOR_WG) {
-            // Ensure ocean floor stays at vanilla depths
-            if (height > 64) { // Vanilla ocean floor typically doesn't go above y=64
-                cir.setReturnValue(64);
+    @Inject(method = "getHeight", at = @At("HEAD"), cancellable = true)
+    private void useOceanFloorHeightmap(int x, int z, Heightmap.Type heightmap, HeightLimitView world, NoiseConfig noise, CallbackInfoReturnable<Integer> cir) {
+        // For all heightmaps, use the deep ocean floor heightmap calculation
+        // This ensures we get true deep ocean floor topography everywhere
+        if (heightmap != Heightmap.Type.OCEAN_FLOOR && heightmap != Heightmap.Type.OCEAN_FLOOR_WG) {
+            // Get the height using deep ocean floor heightmap
+            // Deep ocean floor typically stays below sea level
+            int oceanFloorHeight = ((NoiseChunkGenerator)(Object)this).getHeight(x, z, Heightmap.Type.OCEAN_FLOOR, world, noise);
+            
+            // Ensure we don't get terrain above sea level
+            if (oceanFloorHeight > ProjectWaterworld.HIGH_SEA_LEVEL) {
+                oceanFloorHeight = ProjectWaterworld.HIGH_SEA_LEVEL;
             }
-            return;
-        }
-
-        // For land features, scale down heights above sea level
-        if (height > ProjectWaterworld.HIGH_SEA_LEVEL) {
-            // Scale the height while preserving terrain shape
-            float scaleFactor = 0.3f; // This will reduce terrain height significantly
-            int scaledHeight = ProjectWaterworld.HIGH_SEA_LEVEL + 
-                (int)((height - ProjectWaterworld.HIGH_SEA_LEVEL) * scaleFactor);
-            cir.setReturnValue(scaledHeight);
+            
+            cir.setReturnValue(oceanFloorHeight);
+            cir.cancel();
         }
     }
 }
