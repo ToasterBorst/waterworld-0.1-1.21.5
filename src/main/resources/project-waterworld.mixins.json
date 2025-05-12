@@ -4,8 +4,7 @@
     "compatibilityLevel": "JAVA_21",
     "mixins": [
         "SeaLevelMixin",
-        "TerrainMixin",
-        "NoiseSettingsMixin"
+        "OceanFloorMixin"
     ],
     "injectors": {
         "defaultRequire": 1
