@@ -1,3 +1,4 @@
+// src/main/java/waterworld/mixin/TerrainMixin.java
 package waterworld.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
@@ -5,7 +6,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.Heightmap;
 import net.minecraft.world.HeightLimitView;
 import net.minecraft.world.gen.chunk.NoiseChunkGenerator;
@@ -15,56 +15,53 @@ import waterworld.ProjectWaterworld;
 @Mixin(NoiseChunkGenerator.class)
 public class TerrainMixin {
 
-    @Inject(method = "getHeight", at = @At("HEAD"), cancellable = true)
-    private void useOceanFloorHeightmap(int x, int z, Heightmap.Type heightmap, HeightLimitView world, NoiseConfig noise, CallbackInfoReturnable<Integer> cir) {
-        // Log every height calculation attempt
-        ProjectWaterworld.LOGGER.info("Height calculation for " + heightmap + " at x:" + x + " z:" + z);
+    // Track if we're already inside our mixin to prevent recursion
+    private static final ThreadLocal<Boolean> PROCESSING = ThreadLocal.withInitial(() -> false);
+    
+    private static boolean loggedStartup = false;
 
-        // For WORLD_SURFACE_WG, which is used for initial terrain generation,
-        // we need to ensure it uses ocean floor values
-        if (heightmap == Heightmap.Type.WORLD_SURFACE_WG) {
-            // Get the height using ocean floor heightmap
-            int oceanFloorHeight = ((NoiseChunkGenerator)(Object)this).getHeight(x, z, Heightmap.Type.OCEAN_FLOOR, world, noise);
-            // Cap at sea level
-            oceanFloorHeight = Math.min(oceanFloorHeight, ProjectWaterworld.HIGH_SEA_LEVEL);
-            ProjectWaterworld.LOGGER.info("WORLD_SURFACE_WG using ocean floor height: " + oceanFloorHeight);
-            cir.setReturnValue(oceanFloorHeight);
-            cir.cancel();
+    @Inject(method = "getHeight", at = @At("HEAD"), cancellable = true)
+    private void redirectToOceanFloor(int x, int z, Heightmap.Type heightmap, HeightLimitView world, NoiseConfig noise, CallbackInfoReturnable<Integer> cir) {
+        if (!loggedStartup) {
+            ProjectWaterworld.LOGGER.info("WaterWorld heightmap redirection active - redirecting all surface heightmaps to ocean floor");
+            loggedStartup = true;
+        }
+        
+        // Skip if we're already inside our mixin to prevent recursion
+        if (PROCESSING.get()) {
             return;
         }
-
-        // For other non-ocean heightmaps, also use ocean floor
-        if (heightmap != Heightmap.Type.OCEAN_FLOOR && heightmap != Heightmap.Type.OCEAN_FLOOR_WG) {
-            ProjectWaterworld.LOGGER.info("Non-ocean heightmap used: " + heightmap + " at x:" + x + " z:" + z);
+        
+        // Only redirect WORLD_SURFACE and MOTION_BLOCKING heightmaps
+        // This is where terrain placement decisions are made
+        if (heightmap == Heightmap.Type.WORLD_SURFACE || 
+            heightmap == Heightmap.Type.WORLD_SURFACE_WG || 
+            heightmap == Heightmap.Type.MOTION_BLOCKING || 
+            heightmap == Heightmap.Type.MOTION_BLOCKING_NO_LEAVES) {
             
-            // Get the height using ocean floor heightmap
-            int oceanFloorHeight = ((NoiseChunkGenerator)(Object)this).getHeight(x, z, Heightmap.Type.OCEAN_FLOOR, world, noise);
-            // Cap at sea level
-            oceanFloorHeight = Math.min(oceanFloorHeight, ProjectWaterworld.HIGH_SEA_LEVEL);
-            ProjectWaterworld.LOGGER.info("Using ocean floor height: " + oceanFloorHeight + " for " + heightmap);
-            
-            // Log if we had to cap the height
-            if (oceanFloorHeight >= ProjectWaterworld.HIGH_SEA_LEVEL) {
-                ProjectWaterworld.LOGGER.info("Capped height at sea level: " + ProjectWaterworld.HIGH_SEA_LEVEL + " at x:" + x + " z:" + z);
+            try {
+                PROCESSING.set(true);
+                
+                // Map the surface heightmap to the appropriate ocean floor version
+                Heightmap.Type oceanType = (heightmap == Heightmap.Type.WORLD_SURFACE_WG) ? 
+                                          Heightmap.Type.OCEAN_FLOOR_WG : 
+                                          Heightmap.Type.OCEAN_FLOOR;
+                
+                // Get the height using ocean floor heightmap
+                NoiseChunkGenerator generator = (NoiseChunkGenerator)(Object)this;
+                int height = generator.getHeight(x, z, oceanType, world, noise);
+                
+                // Log occasionally for debugging
+                if (Math.random() < 0.0001) {
+                    ProjectWaterworld.LOGGER.info("Using " + oceanType + " instead of " + heightmap + 
+                                 " at x:" + x + " z:" + z + " (height: " + height + ")");
+                }
+                
+                cir.setReturnValue(height);
+                cir.cancel();
+            } finally {
+                PROCESSING.set(false);
             }
-            
-            cir.setReturnValue(oceanFloorHeight);
-            cir.cancel();
-        } else {
-            // For ocean floor heightmaps, still cap at sea level
-            int height = ((NoiseChunkGenerator)(Object)this).getHeight(x, z, heightmap, world, noise);
-            height = Math.min(height, ProjectWaterworld.HIGH_SEA_LEVEL);
-            ProjectWaterworld.LOGGER.info("Ocean floor heightmap calculation: " + heightmap + " at x:" + x + " z:" + z + " (height: " + height + ")");
-            cir.setReturnValue(height);
-            cir.cancel();
-        }
-    }
-
-    @Inject(method = "getHeight", at = @At("RETURN"), cancellable = true)
-    private void logFinalHeight(int x, int z, Heightmap.Type heightmap, HeightLimitView world, NoiseConfig noise, CallbackInfoReturnable<Integer> cir) {
-        int finalHeight = cir.getReturnValue();
-        if (finalHeight > ProjectWaterworld.HIGH_SEA_LEVEL) {
-            ProjectWaterworld.LOGGER.info("WARNING: Final height above sea level: " + finalHeight + " for " + heightmap + " at x:" + x + " z:" + z);
         }
     }
 }
