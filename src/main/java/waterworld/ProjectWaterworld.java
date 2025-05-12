@@ -15,9 +15,13 @@ public class ProjectWaterworld implements ModInitializer {
     // High sea level constant
     public static final int HIGH_SEA_LEVEL = 126;
     
+    // Using an even more aggressive cap on terrain generation
+    public static final int VANILLA_OCEAN_FLOOR_MAX = 40;
+    
     @Override
     public void onInitialize() {
         LOGGER.info("Initializing Project Waterworld with high sea level: " + HIGH_SEA_LEVEL);
+        LOGGER.info("Aggressively capping terrain at Y=" + VANILLA_OCEAN_FLOOR_MAX);
         
         // Register our embedded datapack
         try {

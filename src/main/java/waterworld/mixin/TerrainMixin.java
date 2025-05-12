@@ -1,4 +1,3 @@
-// src/main/java/waterworld/mixin/TerrainMixin.java
 package waterworld.mixin;
 
 import org.spongepowered.asm.mixin.Mixin;
@@ -14,54 +13,20 @@ import waterworld.ProjectWaterworld;
 
 @Mixin(NoiseChunkGenerator.class)
 public class TerrainMixin {
-
-    // Track if we're already inside our mixin to prevent recursion
-    private static final ThreadLocal<Boolean> PROCESSING = ThreadLocal.withInitial(() -> false);
-    
-    private static boolean loggedStartup = false;
-
-    @Inject(method = "getHeight", at = @At("HEAD"), cancellable = true)
-    private void redirectToOceanFloor(int x, int z, Heightmap.Type heightmap, HeightLimitView world, NoiseConfig noise, CallbackInfoReturnable<Integer> cir) {
-        if (!loggedStartup) {
-            ProjectWaterworld.LOGGER.info("WaterWorld heightmap redirection active - redirecting all surface heightmaps to ocean floor");
-            loggedStartup = true;
-        }
+    @Inject(method = "getHeight", at = @At("RETURN"), cancellable = true)
+    private void enforceOceanFloor(int x, int z, Heightmap.Type heightmap, HeightLimitView world, NoiseConfig noise, CallbackInfoReturnable<Integer> cir) {
+        // Get the original height
+        int originalHeight = cir.getReturnValue();
         
-        // Skip if we're already inside our mixin to prevent recursion
-        if (PROCESSING.get()) {
-            return;
-        }
-        
-        // Only redirect WORLD_SURFACE and MOTION_BLOCKING heightmaps
-        // This is where terrain placement decisions are made
+        // For SURFACE heightmaps, force height to be at most 40 (well below sea level)
+        // This is a very aggressive limit to ensure vanilla ocean topography
         if (heightmap == Heightmap.Type.WORLD_SURFACE || 
             heightmap == Heightmap.Type.WORLD_SURFACE_WG || 
             heightmap == Heightmap.Type.MOTION_BLOCKING || 
             heightmap == Heightmap.Type.MOTION_BLOCKING_NO_LEAVES) {
             
-            try {
-                PROCESSING.set(true);
-                
-                // Map the surface heightmap to the appropriate ocean floor version
-                Heightmap.Type oceanType = (heightmap == Heightmap.Type.WORLD_SURFACE_WG) ? 
-                                          Heightmap.Type.OCEAN_FLOOR_WG : 
-                                          Heightmap.Type.OCEAN_FLOOR;
-                
-                // Get the height using ocean floor heightmap
-                NoiseChunkGenerator generator = (NoiseChunkGenerator)(Object)this;
-                int height = generator.getHeight(x, z, oceanType, world, noise);
-                
-                // Log occasionally for debugging
-                if (Math.random() < 0.0001) {
-                    ProjectWaterworld.LOGGER.info("Using " + oceanType + " instead of " + heightmap + 
-                                 " at x:" + x + " z:" + z + " (height: " + height + ")");
-                }
-                
-                cir.setReturnValue(height);
-                cir.cancel();
-            } finally {
-                PROCESSING.set(false);
-            }
+            int cappedHeight = Math.min(originalHeight, 40);
+            cir.setReturnValue(cappedHeight);
         }
     }
 }
