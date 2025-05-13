@@ -20,8 +20,8 @@ public class ProjectWaterworld implements ModInitializer {
     
     @Override
     public void onInitialize() {
-        LOGGER.info("Initializing Project Waterworld with high sea level: " + HIGH_SEA_LEVEL);
-        LOGGER.info("Aggressively capping terrain at Y=" + VANILLA_OCEAN_FLOOR_MAX);
+        // Minimal logging, just once at startup
+        LOGGER.info("Initializing Project Waterworld");
         
         // Register our embedded datapack
         try {
@@ -32,11 +32,8 @@ public class ProjectWaterworld implements ModInitializer {
                 FabricLoader.getInstance().getModContainer(MOD_ID).orElseThrow(),
                 ResourcePackActivationType.DEFAULT_ENABLED
             );
-            
-            LOGGER.info("Successfully registered world generation datapack");
         } catch (Exception e) {
             LOGGER.error("Failed to register datapack: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 }
