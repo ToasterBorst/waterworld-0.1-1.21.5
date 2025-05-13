@@ -7,6 +7,7 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import waterworld.util.TerrainDebugger;
 
 public class ProjectWaterworld implements ModInitializer {
     public static final String MOD_ID = "project-waterworld";
@@ -35,5 +36,8 @@ public class ProjectWaterworld implements ModInitializer {
         } catch (Exception e) {
             LOGGER.error("Failed to register datapack: " + e.getMessage());
         }
+        
+        // Register the terrain debugger
+        TerrainDebugger.register();
     }
 }

@@ -1,6 +1,6 @@
 {
-    "replace": false,
-    "values": [
-      "project-waterworld:waterworld"
-    ]
-  }
+  "replace": false,
+  "values": [
+    "project-waterworld:waterworld"
+  ]
+}
