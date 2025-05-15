@@ -9,7 +9,6 @@ import net.minecraft.block.Blocks;
 import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import waterworld.util.TerrainDebugger;
 
 public class ProjectWaterworld implements ModInitializer {
     public static final String MOD_ID = "project-waterworld";
@@ -18,6 +17,9 @@ public class ProjectWaterworld implements ModInitializer {
     // High sea level constant
     public static final int HIGH_SEA_LEVEL = 126;
     
+    // Setting this to vanilla ocean floor Y level
+    public static final int VANILLA_OCEAN_FLOOR_MAX = 40;
+
     @Override
     public void onInitialize() {
         // Minimal logging, just once at startup
