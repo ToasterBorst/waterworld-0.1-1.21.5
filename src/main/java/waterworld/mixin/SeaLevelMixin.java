@@ -12,7 +12,7 @@ public class SeaLevelMixin {
     
     @Inject(method = "seaLevel", at = @At("RETURN"), cancellable = true)
     private void modifySeaLevel(CallbackInfoReturnable<Integer> cir) {
-        // Always override the sea level with our own high value without logging
+        // Always override the sea level with our own high value
         cir.setReturnValue(ProjectWaterworld.HIGH_SEA_LEVEL);
     }
 }

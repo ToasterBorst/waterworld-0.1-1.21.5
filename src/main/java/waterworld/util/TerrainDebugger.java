@@ -20,6 +20,10 @@ public class TerrainDebugger {
                     context.getSource().sendMessage(Text.literal("Height above sea level: " + (pos.getY() - seaLevel)));
                     context.getSource().sendMessage(Text.literal("Target ocean floor max: " + ProjectWaterworld.VANILLA_OCEAN_FLOOR_MAX));
                     
+                    // Add biome information
+                    String biomeName = context.getSource().getWorld().getBiome(pos).toString();
+                    context.getSource().sendMessage(Text.literal("Current biome: " + biomeName));
+                    
                     return 1;
                 }));
         });
