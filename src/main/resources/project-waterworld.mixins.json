@@ -1,13 +1,13 @@
 {
-    "required": true,
-    "package": "waterworld.mixin",
-    "compatibilityLevel": "JAVA_21",
-    "mixins": [
-      "SeaLevelMixin"
-    ],
-    "client": [],
-    "server": [],
-    "injectors": {
-      "defaultRequire": 1
-    }
+  "required": true,
+  "package": "waterworld.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "SeaLevelMixin"
+  ],
+  "client": [],
+  "server": [],
+  "injectors": {
+    "defaultRequire": 1
   }
+}
