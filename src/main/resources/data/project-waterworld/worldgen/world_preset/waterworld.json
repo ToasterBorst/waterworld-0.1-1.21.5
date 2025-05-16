@@ -4,7 +4,7 @@
       "type": "minecraft:overworld",
       "generator": {
         "type": "minecraft:noise",
-        "settings": "project-waterworld:waterworld",
+        "settings": "minecraft:overworld",
         "biome_source": {
           "type": "minecraft:multi_noise",
           "biomes": [
