@@ -1,45 +1,67 @@
 package waterworld.mixin;
 
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.gen.chunk.NoiseChunkGenerator;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import waterworld.ProjectWaterworld;
 
 @Mixin(NoiseChunkGenerator.class)
 public class NoiseGeneratorMixin {
-
-    private static boolean hasLoggedTerrainModification = false;
+    
+    private static boolean hasLoggedInfo = false;
 
     /**
-     * Modify the density values during initial terrain calculation to ensure ocean-appropriate terrain
+     * Modify the density values to create proper ocean floor topography.
+     * This targets the noise value directly, shaping the terrain into
+     * a proper varied ocean floor.
      */
-    @ModifyVariable(method = "populateNoise", at = @At("HEAD"), ordinal = 0)
-    private double modifyTerrainDensity(double density) {
-        // Log once when our mixin is active
-        if (!hasLoggedTerrainModification) {
-            ProjectWaterworld.LOGGER.info("Waterworld: Modifying terrain density during generation");
-            hasLoggedTerrainModification = true;
+    @ModifyVariable(
+        method = "populateNoise(Lnet/minecraft/world/gen/StructureAccessor;Lnet/minecraft/world/chunk/Chunk;II)Lnet/minecraft/world/chunk/Chunk;",
+        at = @At(value = "INVOKE", 
+                target = "Lnet/minecraft/world/gen/chunk/ChunkNoiseSampler;sampleNoiseCorners(III)D", 
+                ordinal = 0),
+        ordinal = 1
+    )
+    private double modifyTerrainNoise(double originalNoise) {
+        // Only log once to avoid spam
+        if (!hasLoggedInfo) {
+            ProjectWaterworld.LOGGER.info("Waterworld: Modifying noise values to create ocean floor topography");
+            hasLoggedInfo = true;
         }
         
-        // In Minecraft, negative density = solid blocks, positive = air/water
-        // If we're calculating density for a position above our desired ocean floor,
-        // ensure it stays positive enough to form water/air rather than solid terrain
-        return Math.max(density, 0.2);
-    }
-    
-    /**
-     * Override height calculations to ensure terrain stays below the ocean floor level
-     */
-    @ModifyArg(
-        method = "getHeight", 
-        at = @At(value = "INVOKE", target = "Ljava/lang/Math;max(II)I"),
-        index = 0
-    )
-    private int capTerrainHeight(int originalHeight) {
-        // Ensure no terrain rises above our ocean floor height
-        return Math.min(originalHeight, ProjectWaterworld.VANILLA_OCEAN_FLOOR_MAX);
+        // Get the current thread's stack trace to extract position information
+        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+        String stackInfo = stackTrace[2].toString(); // Get caller method info
+        
+        // Generate a hash code from the stack info to create position variation
+        int hashCode = stackInfo.hashCode();
+        
+        // Extract pseudo-coordinates for terrain variation
+        int x = hashCode & 0xFFFF;
+        int z = (hashCode >> 16) & 0xFFFF;
+        
+        // Create varied ocean floor terrain using mathematical noise
+        double frequency1 = 0.01;
+        double frequency2 = 0.02;
+        double variation = Math.sin(x * frequency1) * Math.cos(z * frequency1) * 0.3 + 
+                          Math.sin(x * frequency2 + 0.5) * Math.cos(z * frequency2 + 0.5) * 0.15;
+        
+        // Adjust the noise value to create proper ocean floor
+        // - Negative values create solid terrain (ocean floor)
+        // - Positive values create air/water (ocean)
+        // We want to ensure we have a varied underwater terrain
+        
+        // Create a modified noise value that ensures proper ocean floor topography
+        double modifiedNoise = originalNoise;
+        
+        // If the original noise would create terrain that's too high, 
+        // modify it to ensure it stays underwater
+        if (originalNoise < 0 && originalNoise > -0.5) {
+            // Add variation to create rolling underwater hills
+            modifiedNoise = originalNoise + variation;
+        }
+        
+        return modifiedNoise;
     }
 }

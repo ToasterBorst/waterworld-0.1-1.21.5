@@ -15,7 +15,7 @@ public class ProjectWaterworld implements ModInitializer {
     // High sea level constant
     public static final int HIGH_SEA_LEVEL = 126;
     
-    // Setting this to vanilla ocean floor Y level
+    // Setting this to a lower value for ocean floor base
     public static final int VANILLA_OCEAN_FLOOR_MAX = 40;
     
     // Flags to prevent log spam
