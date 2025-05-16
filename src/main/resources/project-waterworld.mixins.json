@@ -3,6 +3,7 @@
   "package": "waterworld.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "NoiseChunkGeneratorMixin"
   ],
   "client": [],
   "server": [],

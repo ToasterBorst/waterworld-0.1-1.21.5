@@ -25,6 +25,8 @@ public class ProjectWaterworld implements ModInitializer {
                 FabricLoader.getInstance().getModContainer(MOD_ID).orElseThrow(),
                 ResourcePackActivationType.DEFAULT_ENABLED
             );
+            
+            LOGGER.info("Registered Waterworld datapack");
         } catch (Exception e) {
             LOGGER.error("Failed to register datapack: " + e.getMessage());
         }
