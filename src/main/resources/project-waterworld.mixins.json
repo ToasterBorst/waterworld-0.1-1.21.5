@@ -3,6 +3,9 @@
   "package": "waterworld.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "SeaLevelMixin",
+    "SpawnPlatformMixin",
+    "NoiseGeneratorMixin"
   ],
   "client": [],
   "server": [],

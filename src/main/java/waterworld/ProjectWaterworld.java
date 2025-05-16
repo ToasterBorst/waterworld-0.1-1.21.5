@@ -17,6 +17,10 @@ public class ProjectWaterworld implements ModInitializer {
     
     // Setting this to vanilla ocean floor Y level
     public static final int VANILLA_OCEAN_FLOOR_MAX = 40;
+    
+    // Flags to prevent log spam
+    public static boolean hasLoggedMixinInfo = false;
+    public static boolean hasLoggedTerrainModification = false;
 
     @Override
     public void onInitialize() {
