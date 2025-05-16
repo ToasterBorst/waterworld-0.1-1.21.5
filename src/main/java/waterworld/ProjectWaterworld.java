@@ -12,19 +12,8 @@ public class ProjectWaterworld implements ModInitializer {
     public static final String MOD_ID = "project-waterworld";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
-    // High sea level constant
-    public static final int HIGH_SEA_LEVEL = 126;
-    
-    // Setting this to a lower value for ocean floor base
-    public static final int VANILLA_OCEAN_FLOOR_MAX = 40;
-    
-    // Flags to prevent log spam
-    public static boolean hasLoggedMixinInfo = false;
-    public static boolean hasLoggedTerrainModification = false;
-
     @Override
     public void onInitialize() {
-        
         LOGGER.info("Initializing Project Waterworld");
         
         // Register embedded datapack
