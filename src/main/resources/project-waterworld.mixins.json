@@ -4,8 +4,7 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "SeaLevelMixin",
-    "SpawnPlatformMixin",
-    "BiomeModifierMixin"
+    "SpawnPlatformMixin"
   ],
   "client": [],
   "server": [],
