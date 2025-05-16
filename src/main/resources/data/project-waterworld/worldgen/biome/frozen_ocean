@@ -1,0 +1,25 @@
+{
+  "temperature": -0.7,
+  "downfall": 0.4,
+  "has_precipitation": true,
+  "temperature_modifier": "frozen",
+  "effects": {
+    "sky_color": 8103167,
+    "fog_color": 12638463,
+    "water_color": 3750089,
+    "water_fog_color": 329011,
+    "precipitation": "snow"
+  },
+  "spawners": {
+    "ambient": [],
+    "water_ambient": [],
+    "water_creature": [],
+    "monster": [],
+    "creature": [],
+    "underground_water_creature": [],
+    "misc": []
+  },
+  "spawn_costs": {},
+  "carvers": {},
+  "features": []
+}

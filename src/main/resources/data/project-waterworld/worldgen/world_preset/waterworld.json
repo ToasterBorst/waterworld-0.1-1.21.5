@@ -93,7 +93,7 @@
               }
             },
             {
-              "biome": "minecraft:deep_frozen_ocean",
+              "biome": "project-waterworld:deep_frozen_ocean",
               "parameters": {
                 "temperature": [-1.0, -0.5],
                 "humidity": [-1.0, 1.0],
@@ -105,7 +105,7 @@
               }
             },
             {
-              "biome": "minecraft:frozen_ocean",
+              "biome": "project-waterworld:frozen_ocean",
               "parameters": {
                 "temperature": [-1.0, -0.5],
                 "humidity": [-1.0, 1.0],
