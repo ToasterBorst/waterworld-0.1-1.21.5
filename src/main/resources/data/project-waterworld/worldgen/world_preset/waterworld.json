@@ -11,60 +11,60 @@
             {
               "biome": "minecraft:deep_lukewarm_ocean",
               "parameters": {
-                "temperature": [0.2, 0.55],
+                "temperature": [0.15, 0.6],
                 "humidity": [-1.0, 1.0],
                 "continentalness": [-1.05, 0.3],
                 "erosion": [-1.0, 1.0],
                 "weirdness": [-1.0, 1.0],
-                "depth": [-1.0, -0.35],
+                "depth": [-1.0, -0.6],
                 "offset": 0.0
               }
             },
             {
               "biome": "minecraft:lukewarm_ocean",
               "parameters": {
-                "temperature": [0.2, 0.55],
+                "temperature": [0.15, 0.6],
                 "humidity": [-1.0, 1.0],
                 "continentalness": [-1.05, 0.3],
                 "erosion": [-1.0, 1.0],
                 "weirdness": [-1.0, 1.0],
-                "depth": [-0.35, 0.1],
+                "depth": [-0.6, 0.1],
                 "offset": 0.0
               }
             },
             {
               "biome": "minecraft:warm_ocean",
               "parameters": {
-                "temperature": [0.55, 1.0],
+                "temperature": [0.6, 1.0],
                 "humidity": [-1.0, 1.0],
                 "continentalness": [-1.05, 0.3],
                 "erosion": [-1.0, 1.0],
                 "weirdness": [-1.0, 1.0],
-                "depth": [-0.35, 0.2],
+                "depth": [-0.4, 0.1],
                 "offset": 0.0
               }
             },
             {
               "biome": "minecraft:deep_ocean",
               "parameters": {
-                "temperature": [-0.15, 0.2],
+                "temperature": [-0.15, 0.15],
                 "humidity": [-1.0, 1.0],
                 "continentalness": [-1.05, 0.3],
                 "erosion": [-1.0, 1.0],
                 "weirdness": [-1.0, 1.0],
-                "depth": [-1.0, -0.45],
+                "depth": [-1.0, -0.6],
                 "offset": 0.0
               }
             },
             {
               "biome": "minecraft:ocean",
               "parameters": {
-                "temperature": [-0.15, 0.2],
+                "temperature": [-0.15, 0.15],
                 "humidity": [-1.0, 1.0],
                 "continentalness": [-1.05, 0.3],
                 "erosion": [-1.0, 1.0],
                 "weirdness": [-1.0, 1.0],
-                "depth": [-0.45, 0.1],
+                "depth": [-0.6, 0.1],
                 "offset": 0.0
               }
             },
@@ -100,7 +100,7 @@
                 "continentalness": [-1.05, 0.3],
                 "erosion": [-1.0, 1.0],
                 "weirdness": [-1.0, 1.0],
-                "depth": [-1.0, -0.8],
+                "depth": [-0.8, -0.6],
                 "offset": 0.0
               }
             },
@@ -112,31 +112,31 @@
                 "continentalness": [-1.05, 0.3],
                 "erosion": [-1.0, 1.0],
                 "weirdness": [-1.0, 1.0],
-                "depth": [-0.8, 0.1],
+                "depth": [-0.6, 0.1],
                 "offset": 0.0
               }
             },
             {
               "biome": "minecraft:dripstone_caves",
               "parameters": {
-                "temperature": [-0.5, 0.2],
-                "humidity": [0.4, 1.0],
+                "temperature": [-0.7, 0.4],
+                "humidity": [0.2, 1.0],
                 "continentalness": [-1.2, 0.5],
                 "erosion": [-1.0, 1.0],
                 "weirdness": [-1.0, 1.0],
-                "depth": [0.8, 1.0],
+                "depth": [0.7, 0.9],
                 "offset": 0.0
               }
             },
             {
               "biome": "minecraft:lush_caves",
               "parameters": {
-                "temperature": [0.2, 1.0],
-                "humidity": [0.3, 1.0],
+                "temperature": [0.3, 1.0],
+                "humidity": [0.5, 1.0],
                 "continentalness": [-1.2, 0.5],
                 "erosion": [-1.0, 1.0],
                 "weirdness": [-1.0, 1.0],
-                "depth": [0.8, 1.0],
+                "depth": [0.6, 0.8],
                 "offset": 0.0
               }
             },
@@ -147,8 +147,8 @@
                 "humidity": [-1.0, 1.0],
                 "continentalness": [-1.2, 0.5],
                 "erosion": [-1.0, 1.0],
-                "weirdness": [-1.0, -0.8],
-                "depth": [0.9, 1.0],
+                "weirdness": [-0.8, 0.8],
+                "depth": [0.8, 0.9],
                 "offset": 0.0
               }
             }
