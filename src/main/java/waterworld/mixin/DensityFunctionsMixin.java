@@ -8,36 +8,42 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import waterworld.ProjectWaterworld;
 
 /**
- * A comprehensive approach that targets multiple density function types
+ * Ultra-focused approach targeting only the critical terrain shape components
  */
 @Mixin(targets = {
-    "net.minecraft.world.gen.densityfunction.DensityFunctions$ShiftedNoise",
-    "net.minecraft.world.gen.densityfunction.DensityFunctions$Noise",
-    "net.minecraft.world.gen.densityfunction.DensityFunctions$EndIslands",
-    "net.minecraft.world.gen.densityfunction.DensityFunctions$Constant",
-    "net.minecraft.world.gen.densityfunction.DensityFunctions$MulOrAdd"
+    // Target the specific terrain-controlling functions
+    "net.minecraft.world.gen.densityfunction.DensityFunctions$EndIslandDensityFunction",
+    "net.minecraft.world.gen.densityfunction.DensityFunctions$TerrainShaperSpline"
 })
 public class DensityFunctionsMixin {
     
-    private static int counter = 0;
-    
-    /**
-     * Extremely aggressive approach that targets all density functions
-     * and forces any that might contribute to terrain height to be deep underwater
-     */
-    @Inject(method = "compute", at = @At("RETURN"), cancellable = true)
-    private void enforceUnderwaterTerrain(DensityFunction.NoisePos pos, CallbackInfoReturnable<Double> cir) {
-        double value = cir.getReturnValue();
+    @Inject(
+        method = "compute(Lnet/minecraft/world/gen/densityfunction/DensityFunction$NoisePos;)D",
+        at = @At("RETURN"), 
+        cancellable = true
+    )
+    private void enforceDeepOceanTerrain(DensityFunction.NoisePos pos, CallbackInfoReturnable<Double> cir) {
+        double originalValue = cir.getReturnValue();
+        int y = pos.blockY();
         
-        // Log occasionally to understand what we're catching
-        if (counter++ % 10000 == 0) {
-            ProjectWaterworld.LOGGER.info("Density function value: {}", value);
+        // Log information about Y position and density values
+        if (y % 32 == 0 && pos.blockX() % 32 == 0 && pos.blockZ() % 32 == 0) {
+            ProjectWaterworld.LOGGER.info("Terrain density at y={}: original={}", y, originalValue);
         }
         
-        // If the value is positive or close to zero, it likely contributes to land
-        if (value > -0.3) {
-            // Force it deep underwater
-            cir.setReturnValue(-0.8);
+        // For key terrain-shaping functions, force underwater values
+        double newValue;
+        
+        if (y > 50) {
+            // Scale based on height - deeper water for higher elevations
+            double depthFactor = Math.min(5.0, (y - 50) / 15.0);
+            newValue = -1.5 - depthFactor;
+            
+            if (y % 32 == 0 && pos.blockX() % 32 == 0 && pos.blockZ() % 32 == 0) {
+                ProjectWaterworld.LOGGER.info("  Modified to: {}", newValue);
+            }
+            
+            cir.setReturnValue(newValue);
         }
     }
 }
