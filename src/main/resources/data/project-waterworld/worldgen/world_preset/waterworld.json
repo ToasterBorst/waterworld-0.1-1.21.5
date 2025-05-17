@@ -16,7 +16,7 @@
                 "continentalness": [-1.05, 0.3],
                 "erosion": [-1.0, 1.0],
                 "weirdness": [-1.0, 1.0],
-                "depth": [-1.0, -0.6],
+                "depth": [-1.0, -0.45],
                 "offset": 0.0
               }
             },
@@ -28,19 +28,19 @@
                 "continentalness": [-1.05, 0.3],
                 "erosion": [-1.0, 1.0],
                 "weirdness": [-1.0, 1.0],
-                "depth": [-0.6, 0.1],
+                "depth": [-0.45, -0.2],
                 "offset": 0.0
               }
             },
             {
               "biome": "minecraft:warm_ocean",
               "parameters": {
-                "temperature": [0.6, 1.0],
+                "temperature": [0.15, 0.6],
                 "humidity": [-1.0, 1.0],
                 "continentalness": [-1.05, 0.3],
                 "erosion": [-1.0, 1.0],
                 "weirdness": [-1.0, 1.0],
-                "depth": [-0.4, 0.1],
+                "depth": [-0.2, 0.1],
                 "offset": 0.0
               }
             },
@@ -52,7 +52,7 @@
                 "continentalness": [-1.05, 0.3],
                 "erosion": [-1.0, 1.0],
                 "weirdness": [-1.0, 1.0],
-                "depth": [-1.0, -0.6],
+                "depth": [-1.0, -0.45],
                 "offset": 0.0
               }
             },
@@ -64,7 +64,7 @@
                 "continentalness": [-1.05, 0.3],
                 "erosion": [-1.0, 1.0],
                 "weirdness": [-1.0, 1.0],
-                "depth": [-0.6, 0.1],
+                "depth": [-0.45, 0.1],
                 "offset": 0.0
               }
             },
@@ -76,7 +76,7 @@
                 "continentalness": [-1.05, 0.3],
                 "erosion": [-1.0, 1.0],
                 "weirdness": [-1.0, 1.0],
-                "depth": [-1.0, -0.6],
+                "depth": [-1.0, -0.45],
                 "offset": 0.0
               }
             },
@@ -88,7 +88,7 @@
                 "continentalness": [-1.05, 0.3],
                 "erosion": [-1.0, 1.0],
                 "weirdness": [-1.0, 1.0],
-                "depth": [-0.6, 0.1],
+                "depth": [-0.45, 0.1],
                 "offset": 0.0
               }
             },
@@ -100,7 +100,7 @@
                 "continentalness": [-1.05, 0.3],
                 "erosion": [-1.0, 1.0],
                 "weirdness": [-1.0, 1.0],
-                "depth": [-0.8, -0.6],
+                "depth": [-0.8, -0.45],
                 "offset": 0.0
               }
             },
@@ -112,7 +112,7 @@
                 "continentalness": [-1.05, 0.3],
                 "erosion": [-1.0, 1.0],
                 "weirdness": [-1.0, 1.0],
-                "depth": [-0.6, 0.1],
+                "depth": [-0.45, 0.1],
                 "offset": 0.0
               }
             },
