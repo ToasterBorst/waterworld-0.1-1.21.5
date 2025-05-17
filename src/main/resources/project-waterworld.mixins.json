@@ -3,7 +3,6 @@
   "package": "waterworld.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "NoiseToHeightmapMixin"
   ],
   "client": [],
   "server": [],
