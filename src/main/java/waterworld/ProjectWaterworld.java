@@ -1,6 +1,7 @@
 package waterworld;
 
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.ResourcePackActivationType;
 import net.fabricmc.loader.api.FabricLoader;
@@ -30,5 +31,10 @@ public class ProjectWaterworld implements ModInitializer {
         } catch (Exception e) {
             LOGGER.error("Failed to register datapack: " + e.getMessage());
         }
+        
+        // Initialize biome replacement registry when server starts
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+            BiomeReplacementRegistry.initialize(server);
+        });
     }
 }
