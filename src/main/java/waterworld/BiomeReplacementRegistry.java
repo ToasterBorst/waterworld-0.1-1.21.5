@@ -24,6 +24,43 @@ public class BiomeReplacementRegistry {
         }
     }
     
+    // Class to hold a set of weighted biomes
+    private static class WeightedBiomeSet {
+        private final List<WeightedBiome> biomes;
+        private final int totalWeight;
+        
+        public WeightedBiomeSet(List<WeightedBiome> biomes) {
+            this.biomes = biomes;
+            this.totalWeight = biomes.stream().mapToInt(wb -> wb.weight).sum();
+        }
+        
+        public boolean isEmpty() {
+            return biomes.isEmpty();
+        }
+        
+        public RegistryEntry<Biome> getRandomBiome(Random random) {
+            if (isEmpty()) {
+                return null;
+            }
+            
+            int value = random.nextInt(totalWeight);
+            int currentWeight = 0;
+            
+            for (WeightedBiome weightedBiome : biomes) {
+                currentWeight += weightedBiome.weight;
+                if (value < currentWeight) {
+                    return weightedBiome.biome;
+                }
+            }
+            
+            // Fallback to first biome if something goes wrong
+            return biomes.get(0).biome;
+        }
+    }
+    
+    // Map of ocean biome IDs to their weighted replacement sets
+    private static final Map<String, WeightedBiomeSet> biomeReplacements = new HashMap<>();
+    
     public static void initialize(MinecraftServer minecraftServer) {
         server = minecraftServer;
         Registry<Biome> biomeRegistry = server.getRegistryManager().getOrThrow(RegistryKeys.BIOME);
@@ -204,41 +241,58 @@ public class BiomeReplacementRegistry {
         }
         
         if (!weightedBiomes.isEmpty()) {
+            // Store in both maps for backward compatibility
             REPLACEMENT_ENTRIES.put(oceanKey, weightedBiomes);
+            biomeReplacements.put("minecraft:" + oceanBiome, new WeightedBiomeSet(weightedBiomes));
             ProjectWaterworld.LOGGER.info("Added weighted replacements for {} with {} options", oceanBiome, weightedBiomes.size());
         } else {
             ProjectWaterworld.LOGGER.warn("Failed to add weighted replacements for {}", oceanBiome);
         }
     }
     
-    public static RegistryEntry<Biome> getReplacementBiome(RegistryEntry<Biome> originalBiome) {
-        if (originalBiome == null || !originalBiome.getKey().isPresent()) {
-            return originalBiome;
+    // Get a replacement biome for an ocean biome
+    public static RegistryEntry<Biome> getReplacementBiome(RegistryEntry<Biome> oceanBiome) {
+        return getReplacementBiome(oceanBiome, new Random());
+    }
+    
+    // Get a replacement biome for an ocean biome with a specific random seed
+    public static RegistryEntry<Biome> getReplacementBiome(RegistryEntry<Biome> oceanBiome, Random random) {
+        if (oceanBiome == null || !oceanBiome.getKey().isPresent()) {
+            return oceanBiome;
         }
         
-        RegistryKey<Biome> originalKey = originalBiome.getKey().get();
-        List<WeightedBiome> replacements = REPLACEMENT_ENTRIES.get(originalKey);
+        String biomeId = oceanBiome.getKey().get().getValue().toString();
         
-        if (replacements == null || replacements.isEmpty()) {
-            return originalBiome;
+        // Try the new system first
+        WeightedBiomeSet replacements = biomeReplacements.get(biomeId);
+        if (replacements != null && !replacements.isEmpty()) {
+            return replacements.getRandomBiome(random);
         }
         
-        // Calculate total weight
-        int totalWeight = replacements.stream().mapToInt(wb -> wb.weight).sum();
-        
-        // Generate random number between 0 and total weight
-        int random = new Random().nextInt(totalWeight);
-        
-        // Find the selected biome based on weights
-        int currentWeight = 0;
-        for (WeightedBiome weightedBiome : replacements) {
-            currentWeight += weightedBiome.weight;
-            if (random < currentWeight) {
-                return weightedBiome.biome;
+        // Fall back to the old system if needed
+        RegistryKey<Biome> key = oceanBiome.getKey().get();
+        List<WeightedBiome> oldReplacements = REPLACEMENT_ENTRIES.get(key);
+        if (oldReplacements != null && !oldReplacements.isEmpty()) {
+            int totalWeight = oldReplacements.stream().mapToInt(wb -> wb.weight).sum();
+            int value = random.nextInt(totalWeight);
+            int currentWeight = 0;
+            
+            for (WeightedBiome weightedBiome : oldReplacements) {
+                currentWeight += weightedBiome.weight;
+                if (value < currentWeight) {
+                    return weightedBiome.biome;
+                }
             }
+            
+            return oldReplacements.get(0).biome;
         }
         
-        // Fallback to first biome if something goes wrong
-        return replacements.get(0).biome;
+        return oceanBiome;
+    }
+    
+    // Register a weighted set of replacement biomes for an ocean biome
+    public static void registerReplacements(String oceanBiomeId, List<WeightedBiome> replacements) {
+        biomeReplacements.put(oceanBiomeId, new WeightedBiomeSet(replacements));
+        ProjectWaterworld.LOGGER.info("Added weighted replacements for {} with {} options", oceanBiomeId, replacements.size());
     }
 }

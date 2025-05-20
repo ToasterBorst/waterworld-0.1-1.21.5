@@ -22,7 +22,8 @@ import java.util.Random;
 public class BiomeSourceMixin {
     private static final boolean DEBUG_BIOME_REPLACEMENT = true;
     private static final boolean LOG_REPLACEMENTS_ONLY = true;
-    private static final boolean LOG_OCEAN_CACHING = true;
+    private static final boolean LOG_OCEAN_CACHING = false;
+    private static final boolean LOG_Y_LEVEL = false;
     
     // Constants for biome replacement
     private static final int SEA_LEVEL_BIOME_Y = 31; // y=127 in world coordinates
@@ -30,9 +31,8 @@ public class BiomeSourceMixin {
     private static final int REPLACEMENT_START_Y = 126; // Start replacement at y=126
     
     // Biome grid size (similar to vanilla's biome size)
-    private static final int BIOME_GRID_SIZE = 64; // 4 chunks, matches vanilla biome size
-    private static final int TRANSITION_RADIUS = 2; // Affects 2 grid cells in each direction for smoother transitions
-    private static final float TRANSITION_FALLOFF = 0.5f; // How quickly the transition effect falls off
+    private static final int BIOME_GRID_SIZE = 16; // Smaller grid for more precise control
+    private static final int TRANSITION_RADIUS = 0; // Disable transitions completely
     
     // Spawn chunk radius (in blocks)
     private static final int SPAWN_CHUNK_RADIUS = 128; // 8 chunks radius
@@ -44,8 +44,11 @@ public class BiomeSourceMixin {
     // Cache for land biome replacements to ensure horizontal consistency
     private static final Map<String, RegistryEntry<Biome>> landBiomeCache = new ConcurrentHashMap<>();
     
-    // Cache for ocean types per column
+    // Cache for ocean types per column - only store once per column
     private static final Map<String, RegistryEntry<Biome>> oceanTypeCache = new ConcurrentHashMap<>();
+    
+    // Cache for sea level biomes to ensure strict boundary
+    private static final Map<String, RegistryEntry<Biome>> seaLevelBiomeCache = new ConcurrentHashMap<>();
     
     // Cache for spawn chunk logging to prevent spam
     private static final Set<String> loggedSpawnBiomes = ConcurrentHashMap.newKeySet();
@@ -69,25 +72,41 @@ public class BiomeSourceMixin {
         String columnKey = String.format("%d_%d", x, z);
         int worldY = y * 4;
         
-        // If we have a cached ocean type for this column, use it
-        RegistryEntry<Biome> cachedOceanType = oceanTypeCache.get(columnKey);
-        if (cachedOceanType != null) {
-            String biomeId = cachedOceanType.getKey().get().getValue().toString();
-            if (biomeId.contains("deep_") && worldY < WORLD_SEA_LEVEL) {
-                if (LOG_OCEAN_CACHING) {
-                    ProjectWaterworld.LOGGER.info("Using cached deep ocean {} at {}, {}, {} (y={})", 
-                        biomeId, x, y, z, worldY);
+        // Check if we're in spawn chunks
+        int gridX = x / BIOME_GRID_SIZE;
+        int gridZ = z / BIOME_GRID_SIZE;
+        
+        // Get the current biome - only proceed if we have one
+        RegistryEntry<Biome> currentBiome = cir.getReturnValue();
+        if (currentBiome == null || !currentBiome.getKey().isPresent()) {
+            return;
+        }
+        
+        if (Math.abs(gridX) <= SPAWN_CHUNK_GRID_RADIUS && Math.abs(gridZ) <= SPAWN_CHUNK_GRID_RADIUS) {
+            // Log spawn chunk biomes once
+            String spawnKey = String.format("%d_%d_%d", x, y, z);
+            if (!loggedSpawnBiomes.contains(spawnKey)) {
+                loggedSpawnBiomes.add(spawnKey);
+                ProjectWaterworld.LOGGER.info("SPAWN CHUNK BIOME: {} at {},{} (world y={})", 
+                    currentBiome.getKey().get().getValue(), x, z, worldY);
+            }
+            return;
+        }
+        
+        // Only preserve deep ocean types below sea level
+        if (worldY < WORLD_SEA_LEVEL) {
+            RegistryEntry<Biome> cachedOceanType = oceanTypeCache.get(columnKey);
+            if (cachedOceanType != null) {
+                String biomeId = cachedOceanType.getKey().get().getValue().toString();
+                if (biomeId.contains("deep_")) {
+                    cir.setReturnValue(cachedOceanType);
+                    return;
                 }
-                cir.setReturnValue(cachedOceanType);
-                return;
             }
         }
         
-        // If we're at sea level, check if this is a deep ocean
-        if (worldY == WORLD_SEA_LEVEL) {
-            // Let the original biome determination happen
-            return;
-        }
+        // Let all other biome determinations happen normally
+        return;
     }
     
     // Main biome replacement mixin - simplified to focus on above-sea-level replacement
@@ -107,74 +126,103 @@ public class BiomeSourceMixin {
             }
             
             String biomeId = currentBiome.getKey().get().getValue().toString();
-            int worldY = y * 4;
-            
-            // Calculate grid position for biome areas
-            float gridX = x / (float)BIOME_GRID_SIZE;
-            float gridZ = z / (float)BIOME_GRID_SIZE;
-            int gridXFloor = (int)Math.floor(gridX);
-            int gridZFloor = (int)Math.floor(gridZ);
-            
-            // Get the grid key for this position
-            String gridKey = String.format("%d_%d", gridXFloor, gridZFloor);
+            int worldY = y * 4; // Convert biome Y to world Y
             
             // Check if this is an ocean biome
             boolean isOcean = OCEAN_BIOMES.contains(biomeId);
             
-            // Store ocean type when we first see it at sea level
+            // Store ocean type when we first see it at sea level - only once per column
             if (y == SEA_LEVEL_BIOME_Y && isOcean) {
-                oceanTypeCache.putIfAbsent(gridKey, currentBiome);
-                if (LOG_OCEAN_CACHING) {
-                    ProjectWaterworld.LOGGER.info("Caching ocean type {} at grid {},{} (world y={})", 
-                        biomeId, gridXFloor, gridZFloor, worldY);
+                String columnKey = String.format("%d_%d", x, z);
+                if (!oceanTypeCache.containsKey(columnKey)) {
+                    oceanTypeCache.put(columnKey, currentBiome);
+                    // Log when we store an ocean type - only once per column
+                    ProjectWaterworld.LOGGER.info("Stored ocean type {} at {},{} (world y={})", 
+                        biomeId, x, z, worldY);
                 }
             }
             
             // Handle biome replacement at and above replacement start level
             if (worldY >= REPLACEMENT_START_Y && isOcean) {
-                // Get or create the land biome for this grid cell
-                RegistryEntry<Biome> replacementBiome = landBiomeCache.get(gridKey);
+                RegistryEntry<Biome> replacementBiome = null;
                 
-                if (replacementBiome == null) {
-                    // Get the base ocean type for this grid
-                    RegistryEntry<Biome> baseBiome = oceanTypeCache.getOrDefault(gridKey, currentBiome);
+                // For exactly y=126, use exact coordinates
+                if (worldY == REPLACEMENT_START_Y) {
+                    // Use exact coordinates for sea level to ensure precise boundary
+                    String seaLevelKey = String.format("%d_%d", x, z);
+                    replacementBiome = seaLevelBiomeCache.get(seaLevelKey);
                     
-                    // Get replacement biome
-                    replacementBiome = BiomeReplacementRegistry.getReplacementBiome(baseBiome);
-                    
-                    if (replacementBiome != null && replacementBiome != baseBiome && 
-                        replacementBiome.getKey().isPresent() && replacementBiome.value() != null) {
+                    if (replacementBiome == null) {
+                        // Get the base ocean type for this column
+                        String columnKey = String.format("%d_%d", x, z);
+                        RegistryEntry<Biome> baseBiome = oceanTypeCache.getOrDefault(columnKey, currentBiome);
                         
-                        landBiomeCache.put(gridKey, replacementBiome);
+                        // Use a deterministic seed based on coordinates
+                        long seed = (long)x * 31 + (long)z * 17;
+                        Random random = new Random(seed);
                         
-                        if (DEBUG_BIOME_REPLACEMENT) {
-                            ProjectWaterworld.LOGGER.info("REPLACEMENT: {} -> {} at grid {},{} (world y={})", 
+                        // Force a replacement at y=126
+                        replacementBiome = BiomeReplacementRegistry.getReplacementBiome(baseBiome, random);
+                        
+                        if (replacementBiome != null && replacementBiome != baseBiome && 
+                            replacementBiome.getKey().isPresent() && replacementBiome.value() != null) {
+                            
+                            // Cache the sea level biome using exact coordinates
+                            seaLevelBiomeCache.put(seaLevelKey, replacementBiome);
+                            
+                            // Log the replacement
+                            ProjectWaterworld.LOGGER.info("SEA LEVEL REPLACEMENT: {} -> {} at {},{} (world y={})", 
                                 baseBiome.getKey().get().getValue(),
                                 replacementBiome.getKey().get().getValue(),
-                                gridXFloor, gridZFloor, worldY);
-                        }
-                        
-                        // Create smoother transitions by affecting a larger area with falloff
-                        for (int dx = -TRANSITION_RADIUS; dx <= TRANSITION_RADIUS; dx++) {
-                            for (int dz = -TRANSITION_RADIUS; dz <= TRANSITION_RADIUS; dz++) {
-                                float distance = (float)Math.sqrt(dx * dx + dz * dz);
-                                if (distance <= TRANSITION_RADIUS) {
-                                    // Apply falloff based on distance
-                                    float falloff = 1.0f - (distance / TRANSITION_RADIUS) * TRANSITION_FALLOFF;
-                                    if (falloff > 0.5f || new Random().nextFloat() < falloff) {
-                                        String nearbyKey = String.format("%d_%d", gridXFloor + dx, gridZFloor + dz);
-                                        landBiomeCache.putIfAbsent(nearbyKey, replacementBiome);
-                                    }
-                                }
-                            }
+                                x, z, worldY);
+                            
+                            // Force the replacement
+                            cir.setReturnValue(replacementBiome);
+                            return;
                         }
                     } else {
-                        replacementBiome = baseBiome;
+                        // Use cached replacement
+                        cir.setReturnValue(replacementBiome);
+                        return;
                     }
-                }
-                
-                if (replacementBiome != currentBiome) {
-                    cir.setReturnValue(replacementBiome);
+                } else if (worldY > REPLACEMENT_START_Y) {
+                    // For above y=126, use a small grid for consistency
+                    int gridX = x / BIOME_GRID_SIZE;
+                    int gridZ = z / BIOME_GRID_SIZE;
+                    String gridKey = String.format("%d_%d", gridX, gridZ);
+                    
+                    replacementBiome = landBiomeCache.get(gridKey);
+                    
+                    if (replacementBiome == null) {
+                        // Get the base ocean type for this column
+                        String columnKey = String.format("%d_%d", x, z);
+                        RegistryEntry<Biome> baseBiome = oceanTypeCache.getOrDefault(columnKey, currentBiome);
+                        
+                        // Use a deterministic seed based on grid coordinates
+                        long seed = (long)gridX * 31 + (long)gridZ * 17;
+                        Random random = new Random(seed);
+                        
+                        replacementBiome = BiomeReplacementRegistry.getReplacementBiome(baseBiome, random);
+                        
+                        if (replacementBiome != null && replacementBiome != baseBiome && 
+                            replacementBiome.getKey().isPresent() && replacementBiome.value() != null) {
+                            
+                            // Cache the replacement biome
+                            landBiomeCache.put(gridKey, replacementBiome);
+                            
+                            // Log the replacement
+                            ProjectWaterworld.LOGGER.info("ABOVE SEA REPLACEMENT: {} -> {} at grid {},{} (world y={})", 
+                                baseBiome.getKey().get().getValue(),
+                                replacementBiome.getKey().get().getValue(),
+                                gridX, gridZ, worldY);
+                        } else {
+                            replacementBiome = baseBiome;
+                        }
+                    }
+                    
+                    if (replacementBiome != currentBiome) {
+                        cir.setReturnValue(replacementBiome);
+                    }
                 }
             }
         } finally {
