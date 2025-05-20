@@ -30,97 +30,118 @@ public class BiomeReplacementRegistry {
         
         ProjectWaterworld.LOGGER.info("Initializing biome replacements...");
         
-        // Verify some key biomes exist
+        // Verify all key biomes exist
         verifyBiomeExists(biomeRegistry, "cold_ocean");
         verifyBiomeExists(biomeRegistry, "plains");
         verifyBiomeExists(biomeRegistry, "forest");
         verifyBiomeExists(biomeRegistry, "cherry_grove");
         verifyBiomeExists(biomeRegistry, "mangrove_swamp");
+        verifyBiomeExists(biomeRegistry, "meadow");
+        verifyBiomeExists(biomeRegistry, "grove");
+        verifyBiomeExists(biomeRegistry, "snowy_plains");
+        verifyBiomeExists(biomeRegistry, "snowy_taiga");
+        verifyBiomeExists(biomeRegistry, "old_growth_spruce_taiga");
+        verifyBiomeExists(biomeRegistry, "windswept_hills");
+        verifyBiomeExists(biomeRegistry, "windswept_forest");
+        verifyBiomeExists(biomeRegistry, "windswept_gravelly_hills");
+        verifyBiomeExists(biomeRegistry, "birch_forest");
+        verifyBiomeExists(biomeRegistry, "savanna");
+        verifyBiomeExists(biomeRegistry, "jungle");
+        verifyBiomeExists(biomeRegistry, "desert");
+        verifyBiomeExists(biomeRegistry, "badlands");
+        verifyBiomeExists(biomeRegistry, "swamp");
+        verifyBiomeExists(biomeRegistry, "beach");
+        verifyBiomeExists(biomeRegistry, "snowy_beach");
+        verifyBiomeExists(biomeRegistry, "jagged_peaks");
+        verifyBiomeExists(biomeRegistry, "frozen_peaks");
+        verifyBiomeExists(biomeRegistry, "pale_garden");
         
         // Cold biomes (frozen ocean)
         addWeightedReplacements(biomeRegistry, "frozen_ocean", Arrays.asList(
-            new WeightedBiomeEntry("snowy_plains", 25),
+            new WeightedBiomeEntry("snowy_plains", 30),
             new WeightedBiomeEntry("snowy_taiga", 25),
-            new WeightedBiomeEntry("snowy_beach", 15),
             new WeightedBiomeEntry("grove", 20),
-            new WeightedBiomeEntry("jagged_peaks", 15)
+            new WeightedBiomeEntry("jagged_peaks", 15),
+            new WeightedBiomeEntry("snowy_beach", 10)
         ));
         
         addWeightedReplacements(biomeRegistry, "deep_frozen_ocean", Arrays.asList(
-            new WeightedBiomeEntry("snowy_taiga", 30),
+            new WeightedBiomeEntry("snowy_taiga", 35),
             new WeightedBiomeEntry("old_growth_spruce_taiga", 25),
-            new WeightedBiomeEntry("snowy_plains", 20),
-            new WeightedBiomeEntry("grove", 15),
-            new WeightedBiomeEntry("frozen_peaks", 10)
+            new WeightedBiomeEntry("grove", 20),
+            new WeightedBiomeEntry("snowy_plains", 15),
+            new WeightedBiomeEntry("frozen_peaks", 5)
         ));
         
         // Cold temperate biomes (cold ocean)
         addWeightedReplacements(biomeRegistry, "cold_ocean", Arrays.asList(
-            new WeightedBiomeEntry("taiga", 25),
-            new WeightedBiomeEntry("old_growth_spruce_taiga", 20),
+            new WeightedBiomeEntry("taiga", 30),
+            new WeightedBiomeEntry("old_growth_spruce_taiga", 25),
             new WeightedBiomeEntry("plains", 20),
-            new WeightedBiomeEntry("forest", 20),
-            new WeightedBiomeEntry("windswept_hills", 15)
+            new WeightedBiomeEntry("forest", 15),
+            new WeightedBiomeEntry("windswept_hills", 10)
         ));
         
         addWeightedReplacements(biomeRegistry, "deep_cold_ocean", Arrays.asList(
-            new WeightedBiomeEntry("old_growth_spruce_taiga", 30),
+            new WeightedBiomeEntry("old_growth_spruce_taiga", 35),
             new WeightedBiomeEntry("taiga", 25),
             new WeightedBiomeEntry("forest", 20),
             new WeightedBiomeEntry("windswept_forest", 15),
-            new WeightedBiomeEntry("windswept_gravelly_hills", 10)
+            new WeightedBiomeEntry("windswept_gravelly_hills", 5)
         ));
         
         // Temperate biomes (ocean)
         addWeightedReplacements(biomeRegistry, "ocean", Arrays.asList(
-            new WeightedBiomeEntry("plains", 20),
+            new WeightedBiomeEntry("plains", 25),
             new WeightedBiomeEntry("forest", 20),
             new WeightedBiomeEntry("birch_forest", 15),
             new WeightedBiomeEntry("meadow", 15),
-            new WeightedBiomeEntry("beach", 10),
             new WeightedBiomeEntry("cherry_grove", 10),
-            new WeightedBiomeEntry("windswept_hills", 10)
+            new WeightedBiomeEntry("windswept_hills", 8),
+            new WeightedBiomeEntry("beach", 5),
+            new WeightedBiomeEntry("pale_garden", 2)
         ));
         
         addWeightedReplacements(biomeRegistry, "deep_ocean", Arrays.asList(
-            new WeightedBiomeEntry("forest", 25),
+            new WeightedBiomeEntry("forest", 30),
             new WeightedBiomeEntry("birch_forest", 20),
             new WeightedBiomeEntry("plains", 15),
             new WeightedBiomeEntry("meadow", 15),
             new WeightedBiomeEntry("cherry_grove", 10),
-            new WeightedBiomeEntry("windswept_forest", 10),
-            new WeightedBiomeEntry("beach", 5)
+            new WeightedBiomeEntry("windswept_forest", 5),
+            new WeightedBiomeEntry("beach", 3),
+            new WeightedBiomeEntry("pale_garden", 2)
         ));
         
         // Warm temperate biomes (lukewarm ocean)
         addWeightedReplacements(biomeRegistry, "lukewarm_ocean", Arrays.asList(
-            new WeightedBiomeEntry("savanna", 20),
+            new WeightedBiomeEntry("savanna", 25),
             new WeightedBiomeEntry("plains", 20),
             new WeightedBiomeEntry("forest", 15),
             new WeightedBiomeEntry("beach", 15),
             new WeightedBiomeEntry("meadow", 10),
-            new WeightedBiomeEntry("cherry_grove", 10),
-            new WeightedBiomeEntry("swamp", 10)
+            new WeightedBiomeEntry("cherry_grove", 8),
+            new WeightedBiomeEntry("swamp", 7)
         ));
         
         addWeightedReplacements(biomeRegistry, "deep_lukewarm_ocean", Arrays.asList(
-            new WeightedBiomeEntry("jungle", 25),
+            new WeightedBiomeEntry("jungle", 30),
             new WeightedBiomeEntry("savanna", 20),
             new WeightedBiomeEntry("forest", 15),
             new WeightedBiomeEntry("mangrove_swamp", 15),
-            new WeightedBiomeEntry("swamp", 15),
-            new WeightedBiomeEntry("beach", 10)
+            new WeightedBiomeEntry("swamp", 12),
+            new WeightedBiomeEntry("beach", 8)
         ));
         
         // Hot biomes (warm ocean)
         addWeightedReplacements(biomeRegistry, "warm_ocean", Arrays.asList(
-            new WeightedBiomeEntry("desert", 25),
-            new WeightedBiomeEntry("savanna", 20),
-            new WeightedBiomeEntry("beach", 15),
+            new WeightedBiomeEntry("desert", 30),
+            new WeightedBiomeEntry("savanna", 25),
             new WeightedBiomeEntry("plains", 15),
-            new WeightedBiomeEntry("cherry_grove", 10),
-            new WeightedBiomeEntry("mangrove_swamp", 10),
-            new WeightedBiomeEntry("badlands", 5)
+            new WeightedBiomeEntry("beach", 15),
+            new WeightedBiomeEntry("cherry_grove", 8),
+            new WeightedBiomeEntry("mangrove_swamp", 5),
+            new WeightedBiomeEntry("badlands", 2)
         ));
         
         ProjectWaterworld.LOGGER.info("Registered {} biome replacement sets", REPLACEMENT_ENTRIES.size());

@@ -16,29 +16,33 @@ import java.util.Set;
 import java.util.HashSet;
 import java.util.Arrays;
 import net.minecraft.registry.Registry;
+import java.util.Random;
 
 @Mixin(MultiNoiseBiomeSource.class)
 public class BiomeSourceMixin {
-    private static final boolean DEBUG_BIOME_REPLACEMENT = false;
+    private static final boolean DEBUG_BIOME_REPLACEMENT = true;
+    private static final boolean LOG_REPLACEMENTS_ONLY = true;
+    private static final boolean LOG_OCEAN_CACHING = true;
     
     // Constants for biome replacement
     private static final int SEA_LEVEL_BIOME_Y = 31; // y=127 in world coordinates
     private static final int WORLD_SEA_LEVEL = 127; // Actual world sea level
+    private static final int REPLACEMENT_START_Y = 126; // Start replacement at y=126
     
     // Biome grid size (similar to vanilla's biome size)
-    private static final int BIOME_GRID_SIZE = 64; // Large biome areas for natural transitions
+    private static final int BIOME_GRID_SIZE = 64; // 4 chunks, matches vanilla biome size
+    private static final int TRANSITION_RADIUS = 2; // Affects 2 grid cells in each direction for smoother transitions
+    private static final float TRANSITION_FALLOFF = 0.5f; // How quickly the transition effect falls off
     
     // Spawn chunk radius (in blocks)
     private static final int SPAWN_CHUNK_RADIUS = 128; // 8 chunks radius
+    private static final int SPAWN_CHUNK_GRID_RADIUS = SPAWN_CHUNK_RADIUS / BIOME_GRID_SIZE; // Convert to grid units
     
     // Thread-safe cache for biome replacements to ensure consistency
     private static final Map<String, RegistryEntry<Biome>> biomeCache = new ConcurrentHashMap<>();
     
     // Cache for land biome replacements to ensure horizontal consistency
     private static final Map<String, RegistryEntry<Biome>> landBiomeCache = new ConcurrentHashMap<>();
-    
-    // Cache for vertical column decisions (whether to replace or not)
-    private static final Map<String, Boolean> columnReplacementCache = new ConcurrentHashMap<>();
     
     // Cache for ocean types per column
     private static final Map<String, RegistryEntry<Biome>> oceanTypeCache = new ConcurrentHashMap<>();
@@ -63,35 +67,30 @@ public class BiomeSourceMixin {
     private void preserveOceanTypes(int x, int y, int z, MultiNoiseUtil.MultiNoiseSampler sampler, CallbackInfoReturnable<RegistryEntry<Biome>> cir) {
         // Get the column key for this position
         String columnKey = String.format("%d_%d", x, z);
+        int worldY = y * 4;
         
         // If we have a cached ocean type for this column, use it
         RegistryEntry<Biome> cachedOceanType = oceanTypeCache.get(columnKey);
         if (cachedOceanType != null) {
-            // Only use cached type if it's a deep ocean variant
             String biomeId = cachedOceanType.getKey().get().getValue().toString();
-            if (biomeId.contains("deep_")) {
+            if (biomeId.contains("deep_") && worldY < WORLD_SEA_LEVEL) {
+                if (LOG_OCEAN_CACHING) {
+                    ProjectWaterworld.LOGGER.info("Using cached deep ocean {} at {}, {}, {} (y={})", 
+                        biomeId, x, y, z, worldY);
+                }
                 cir.setReturnValue(cachedOceanType);
                 return;
             }
         }
         
         // If we're at sea level, check if this is a deep ocean
-        int worldY = y * 4;
         if (worldY == WORLD_SEA_LEVEL) {
             // Let the original biome determination happen
             return;
         }
-        
-        // For positions below sea level, if we have a cached deep ocean type, use it
-        if (worldY < WORLD_SEA_LEVEL && cachedOceanType != null) {
-            String biomeId = cachedOceanType.getKey().get().getValue().toString();
-            if (biomeId.contains("deep_")) {
-                cir.setReturnValue(cachedOceanType);
-            }
-        }
     }
     
-    // Main biome replacement mixin
+    // Main biome replacement mixin - simplified to focus on above-sea-level replacement
     @Inject(method = "getBiome(IIILnet/minecraft/world/biome/source/util/MultiNoiseUtil$MultiNoiseSampler;)Lnet/minecraft/registry/entry/RegistryEntry;", at = @At("RETURN"), cancellable = true)
     private void replaceBiomesAboveSeaLevel(int x, int y, int z, MultiNoiseUtil.MultiNoiseSampler sampler, CallbackInfoReturnable<RegistryEntry<Biome>> cir) {
         // Prevent recursive updates
@@ -103,7 +102,6 @@ public class BiomeSourceMixin {
             isReplacingBiome.set(true);
             
             final RegistryEntry<Biome> currentBiome = cir.getReturnValue();
-            
             if (currentBiome == null || !currentBiome.getKey().isPresent()) {
                 return;
             }
@@ -117,9 +115,6 @@ public class BiomeSourceMixin {
             int gridXFloor = (int)Math.floor(gridX);
             int gridZFloor = (int)Math.floor(gridZ);
             
-            // Get the column key for this position
-            String columnKey = String.format("%d_%d", x, z);
-            
             // Get the grid key for this position
             String gridKey = String.format("%d_%d", gridXFloor, gridZFloor);
             
@@ -128,98 +123,58 @@ public class BiomeSourceMixin {
             
             // Store ocean type when we first see it at sea level
             if (y == SEA_LEVEL_BIOME_Y && isOcean) {
-                // Only cache deep ocean variants
-                if (biomeId.contains("deep_")) {
-                    oceanTypeCache.putIfAbsent(columnKey, currentBiome);
-                } else {
-                    // For shallow oceans, try to find the corresponding deep variant
-                    String deepVariant = biomeId.replace("ocean", "deep_ocean")
-                                             .replace("cold_ocean", "deep_cold_ocean")
-                                             .replace("frozen_ocean", "deep_frozen_ocean")
-                                             .replace("lukewarm_ocean", "deep_lukewarm_ocean");
-                    
-                    // Get the deep variant from the registry
-                    RegistryEntry<Biome> deepVariantEntry = ((MultiNoiseBiomeSource)(Object)this).getBiomes().stream()
-                        .filter(entry -> entry.getKey().isPresent() && 
-                               entry.getKey().get().getValue().toString().equals(deepVariant))
-                        .findFirst()
-                        .orElse(currentBiome);
-                    
-                    oceanTypeCache.putIfAbsent(columnKey, deepVariantEntry);
+                oceanTypeCache.putIfAbsent(gridKey, currentBiome);
+                if (LOG_OCEAN_CACHING) {
+                    ProjectWaterworld.LOGGER.info("Caching ocean type {} at grid {},{} (world y={})", 
+                        biomeId, gridXFloor, gridZFloor, worldY);
                 }
             }
             
-            // For ocean biomes below sea level, use the cached deep ocean type
-            if (isOcean && worldY < WORLD_SEA_LEVEL) {
-                RegistryEntry<Biome> cachedOceanType = oceanTypeCache.get(columnKey);
-                if (cachedOceanType != null && cachedOceanType.getKey().isPresent() && 
-                    cachedOceanType.getKey().get().getValue().toString().contains("deep_")) {
-                    cir.setReturnValue(cachedOceanType);
-                    return;
-                }
-            }
-            
-            // Handle biome replacement at and above sea level
-            if (worldY >= WORLD_SEA_LEVEL) {
-                if (isOcean) {
-                    // Get or create the land biome for this grid cell
-                    String landBiomeKey = String.format("land_%d_%d", gridXFloor, gridZFloor);
-                    RegistryEntry<Biome> replacementBiome = landBiomeCache.get(landBiomeKey);
+            // Handle biome replacement at and above replacement start level
+            if (worldY >= REPLACEMENT_START_Y && isOcean) {
+                // Get or create the land biome for this grid cell
+                RegistryEntry<Biome> replacementBiome = landBiomeCache.get(gridKey);
+                
+                if (replacementBiome == null) {
+                    // Get the base ocean type for this grid
+                    RegistryEntry<Biome> baseBiome = oceanTypeCache.getOrDefault(gridKey, currentBiome);
                     
-                    if (replacementBiome == null) {
-                        // Use the original ocean type for replacement if available
-                        RegistryEntry<Biome> baseBiome = oceanTypeCache.get(columnKey);
-                        if (baseBiome == null) {
-                            baseBiome = currentBiome;
-                            // If this is a shallow ocean, try to get its deep variant
-                            if (!biomeId.contains("deep_")) {
-                                String deepVariant = biomeId.replace("ocean", "deep_ocean")
-                                                         .replace("cold_ocean", "deep_cold_ocean")
-                                                         .replace("frozen_ocean", "deep_frozen_ocean")
-                                                         .replace("lukewarm_ocean", "deep_lukewarm_ocean");
-                                
-                                RegistryEntry<Biome> deepVariantEntry = ((MultiNoiseBiomeSource)(Object)this).getBiomes().stream()
-                                    .filter(entry -> entry.getKey().isPresent() && 
-                                           entry.getKey().get().getValue().toString().equals(deepVariant))
-                                    .findFirst()
-                                    .orElse(currentBiome);
-                                
-                                baseBiome = deepVariantEntry;
-                                oceanTypeCache.putIfAbsent(columnKey, baseBiome);
-                            }
+                    // Get replacement biome
+                    replacementBiome = BiomeReplacementRegistry.getReplacementBiome(baseBiome);
+                    
+                    if (replacementBiome != null && replacementBiome != baseBiome && 
+                        replacementBiome.getKey().isPresent() && replacementBiome.value() != null) {
+                        
+                        landBiomeCache.put(gridKey, replacementBiome);
+                        
+                        if (DEBUG_BIOME_REPLACEMENT) {
+                            ProjectWaterworld.LOGGER.info("REPLACEMENT: {} -> {} at grid {},{} (world y={})", 
+                                baseBiome.getKey().get().getValue(),
+                                replacementBiome.getKey().get().getValue(),
+                                gridXFloor, gridZFloor, worldY);
                         }
                         
-                        replacementBiome = BiomeReplacementRegistry.getReplacementBiome(baseBiome);
-                        
-                        if (replacementBiome != null && replacementBiome != baseBiome && 
-                            replacementBiome.getKey().isPresent() && replacementBiome.value() != null) {
-                            
-                            landBiomeCache.putIfAbsent(landBiomeKey, replacementBiome);
-                            
-                            // Create natural transitions by affecting neighboring cells
-                            for (int dx = -2; dx <= 2; dx++) {
-                                for (int dz = -2; dz <= 2; dz++) {
-                                    float distance = (float)Math.sqrt(dx * dx + dz * dz);
-                                    if (distance <= 2.0f) {
-                                        String nearbyKey = String.format("land_%d_%d", gridXFloor + dx, gridZFloor + dz);
+                        // Create smoother transitions by affecting a larger area with falloff
+                        for (int dx = -TRANSITION_RADIUS; dx <= TRANSITION_RADIUS; dx++) {
+                            for (int dz = -TRANSITION_RADIUS; dz <= TRANSITION_RADIUS; dz++) {
+                                float distance = (float)Math.sqrt(dx * dx + dz * dz);
+                                if (distance <= TRANSITION_RADIUS) {
+                                    // Apply falloff based on distance
+                                    float falloff = 1.0f - (distance / TRANSITION_RADIUS) * TRANSITION_FALLOFF;
+                                    if (falloff > 0.5f || new Random().nextFloat() < falloff) {
+                                        String nearbyKey = String.format("%d_%d", gridXFloor + dx, gridZFloor + dz);
                                         landBiomeCache.putIfAbsent(nearbyKey, replacementBiome);
                                     }
                                 }
                             }
-                        } else {
-                            replacementBiome = baseBiome;
                         }
+                    } else {
+                        replacementBiome = baseBiome;
                     }
-                    
-                    if (replacementBiome != currentBiome) {
-                        cir.setReturnValue(replacementBiome);
-                    }
-                } else {
-                    // No land biomes below sea level
-                    RegistryEntry<Biome> cachedOceanType = oceanTypeCache.get(columnKey);
-                    if (cachedOceanType != null) {
-                        cir.setReturnValue(cachedOceanType);
-                    }
+                }
+                
+                if (replacementBiome != currentBiome) {
+                    cir.setReturnValue(replacementBiome);
                 }
             }
         } finally {
