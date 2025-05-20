@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Arrays;
+import net.minecraft.registry.Registry;
 
 @Mixin(MultiNoiseBiomeSource.class)
 public class BiomeSourceMixin {
@@ -60,19 +61,33 @@ public class BiomeSourceMixin {
     // Inject earlier in the biome determination process
     @Inject(method = "getBiome(IIILnet/minecraft/world/biome/source/util/MultiNoiseUtil$MultiNoiseSampler;)Lnet/minecraft/registry/entry/RegistryEntry;", at = @At("HEAD"), cancellable = true)
     private void preserveOceanTypes(int x, int y, int z, MultiNoiseUtil.MultiNoiseSampler sampler, CallbackInfoReturnable<RegistryEntry<Biome>> cir) {
-        // Only handle ocean type preservation below sea level
-        int worldY = y * 4;
-        if (worldY >= WORLD_SEA_LEVEL) {
-            return;
-        }
-        
         // Get the column key for this position
         String columnKey = String.format("%d_%d", x, z);
         
         // If we have a cached ocean type for this column, use it
         RegistryEntry<Biome> cachedOceanType = oceanTypeCache.get(columnKey);
         if (cachedOceanType != null) {
-            cir.setReturnValue(cachedOceanType);
+            // Only use cached type if it's a deep ocean variant
+            String biomeId = cachedOceanType.getKey().get().getValue().toString();
+            if (biomeId.contains("deep_")) {
+                cir.setReturnValue(cachedOceanType);
+                return;
+            }
+        }
+        
+        // If we're at sea level, check if this is a deep ocean
+        int worldY = y * 4;
+        if (worldY == WORLD_SEA_LEVEL) {
+            // Let the original biome determination happen
+            return;
+        }
+        
+        // For positions below sea level, if we have a cached deep ocean type, use it
+        if (worldY < WORLD_SEA_LEVEL && cachedOceanType != null) {
+            String biomeId = cachedOceanType.getKey().get().getValue().toString();
+            if (biomeId.contains("deep_")) {
+                cir.setReturnValue(cachedOceanType);
+            }
         }
     }
     
@@ -113,13 +128,32 @@ public class BiomeSourceMixin {
             
             // Store ocean type when we first see it at sea level
             if (y == SEA_LEVEL_BIOME_Y && isOcean) {
-                oceanTypeCache.putIfAbsent(columnKey, currentBiome);
+                // Only cache deep ocean variants
+                if (biomeId.contains("deep_")) {
+                    oceanTypeCache.putIfAbsent(columnKey, currentBiome);
+                } else {
+                    // For shallow oceans, try to find the corresponding deep variant
+                    String deepVariant = biomeId.replace("ocean", "deep_ocean")
+                                             .replace("cold_ocean", "deep_cold_ocean")
+                                             .replace("frozen_ocean", "deep_frozen_ocean")
+                                             .replace("lukewarm_ocean", "deep_lukewarm_ocean");
+                    
+                    // Get the deep variant from the registry
+                    RegistryEntry<Biome> deepVariantEntry = ((MultiNoiseBiomeSource)(Object)this).getBiomes().stream()
+                        .filter(entry -> entry.getKey().isPresent() && 
+                               entry.getKey().get().getValue().toString().equals(deepVariant))
+                        .findFirst()
+                        .orElse(currentBiome);
+                    
+                    oceanTypeCache.putIfAbsent(columnKey, deepVariantEntry);
+                }
             }
             
-            // For ocean biomes below sea level, use the cached ocean type
+            // For ocean biomes below sea level, use the cached deep ocean type
             if (isOcean && worldY < WORLD_SEA_LEVEL) {
                 RegistryEntry<Biome> cachedOceanType = oceanTypeCache.get(columnKey);
-                if (cachedOceanType != null && !cachedOceanType.equals(currentBiome)) {
+                if (cachedOceanType != null && cachedOceanType.getKey().isPresent() && 
+                    cachedOceanType.getKey().get().getValue().toString().contains("deep_")) {
                     cir.setReturnValue(cachedOceanType);
                     return;
                 }
@@ -137,7 +171,22 @@ public class BiomeSourceMixin {
                         RegistryEntry<Biome> baseBiome = oceanTypeCache.get(columnKey);
                         if (baseBiome == null) {
                             baseBiome = currentBiome;
-                            oceanTypeCache.putIfAbsent(columnKey, currentBiome);
+                            // If this is a shallow ocean, try to get its deep variant
+                            if (!biomeId.contains("deep_")) {
+                                String deepVariant = biomeId.replace("ocean", "deep_ocean")
+                                                         .replace("cold_ocean", "deep_cold_ocean")
+                                                         .replace("frozen_ocean", "deep_frozen_ocean")
+                                                         .replace("lukewarm_ocean", "deep_lukewarm_ocean");
+                                
+                                RegistryEntry<Biome> deepVariantEntry = ((MultiNoiseBiomeSource)(Object)this).getBiomes().stream()
+                                    .filter(entry -> entry.getKey().isPresent() && 
+                                           entry.getKey().get().getValue().toString().equals(deepVariant))
+                                    .findFirst()
+                                    .orElse(currentBiome);
+                                
+                                baseBiome = deepVariantEntry;
+                                oceanTypeCache.putIfAbsent(columnKey, baseBiome);
+                            }
                         }
                         
                         replacementBiome = BiomeReplacementRegistry.getReplacementBiome(baseBiome);
