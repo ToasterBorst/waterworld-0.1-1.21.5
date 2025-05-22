@@ -11,6 +11,7 @@ import java.util.*;
 import java.util.function.Function;
 
 public class BiomeReplacementRegistry {
+    private static final boolean DEBUG_BIOME_REPLACEMENT = false;
     private static final Map<RegistryKey<Biome>, List<WeightedBiome>> REPLACEMENT_ENTRIES = new HashMap<>();
     private static MinecraftServer server;
     
@@ -65,7 +66,9 @@ public class BiomeReplacementRegistry {
         server = minecraftServer;
         Registry<Biome> biomeRegistry = server.getRegistryManager().getOrThrow(RegistryKeys.BIOME);
         
-        ProjectWaterworld.LOGGER.info("Initializing biome replacements...");
+        if (DEBUG_BIOME_REPLACEMENT) {
+            ProjectWaterworld.LOGGER.info("Initializing biome replacements...");
+        }
         
         // Verify all key biomes exist
         verifyBiomeExists(biomeRegistry, "cold_ocean");
@@ -244,7 +247,9 @@ public class BiomeReplacementRegistry {
             // Store in both maps for backward compatibility
             REPLACEMENT_ENTRIES.put(oceanKey, weightedBiomes);
             biomeReplacements.put("minecraft:" + oceanBiome, new WeightedBiomeSet(weightedBiomes));
-            ProjectWaterworld.LOGGER.info("Added weighted replacements for {} with {} options", oceanBiome, weightedBiomes.size());
+            if (DEBUG_BIOME_REPLACEMENT) {
+                ProjectWaterworld.LOGGER.info("Added weighted replacements for {} with {} options", oceanBiome, weightedBiomes.size());
+            }
         } else {
             ProjectWaterworld.LOGGER.warn("Failed to add weighted replacements for {}", oceanBiome);
         }
@@ -293,6 +298,8 @@ public class BiomeReplacementRegistry {
     // Register a weighted set of replacement biomes for an ocean biome
     public static void registerReplacements(String oceanBiomeId, List<WeightedBiome> replacements) {
         biomeReplacements.put(oceanBiomeId, new WeightedBiomeSet(replacements));
-        ProjectWaterworld.LOGGER.info("Added weighted replacements for {} with {} options", oceanBiomeId, replacements.size());
+        if (DEBUG_BIOME_REPLACEMENT) {
+            ProjectWaterworld.LOGGER.info("Added weighted replacements for {} with {} options", oceanBiomeId, replacements.size());
+        }
     }
 }
